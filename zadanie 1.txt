@@ -1,0 +1,5 @@
+@task n
+nr.wierzchołka liczba_następników następniki(0) <- krawędzie nie mają żadnych wag(danych)
+nr.wierzchołka liczba_następników następniki(0)
+...
+nr.wierzchołka liczba_następników następniki(0)
