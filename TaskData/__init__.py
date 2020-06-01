@@ -5,9 +5,8 @@ from typing import Iterable
 from pathlib import Path
 
 from Graph import Graph
-
-from .channel import Channel
-from .process import Process
+from TaskData.channel import Channel
+from TaskData.process import Process
 
 NUM_OF_HEADERS = 5
 
@@ -19,8 +18,8 @@ class TaskData:
     channels: Iterable[Channel]
 
     def __init__(
-        self,
-        text: str,
+            self,
+            text: str,
     ):
         data = text.strip().split('@')[1:]
         if len(data) != NUM_OF_HEADERS:
@@ -28,7 +27,7 @@ class TaskData:
 
         # data = [i.split('\n', 1)[1] for i in data]
         self.graph = Graph.fromString(data[0])
-        self.proc = Process.createMany(0, *data[1:-1])
+        self.proc = Process.createMany(len(self.graph.nodes), *data[1:-1])
         self.channels = Channel.createMany(data[-1])
 
     @classmethod
@@ -41,5 +40,7 @@ class TaskData:
 
         return cls(path.read_text('utf-8'))
 
+
+TaskData.loadFromFile(r"Grafy\Bez_wag\GRAF.10")
 
 __all__ = [TaskData, Channel, Process]

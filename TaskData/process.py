@@ -15,10 +15,10 @@ class Process:
     costs: Iterable[int]
 
     def __init__(
-        self,
-        proc: Iterable[int],
-        times: Iterable[int],
-        costs: Iterable[int]
+            self,
+            proc: Iterable[int],
+            times: Iterable[int],
+            costs: Iterable[int]
     ):
         self.cost, self.limit, universal = proc
         self.universal = bool(universal)
@@ -27,11 +27,11 @@ class Process:
 
     @classmethod
     def createMany(
-        cls,
-        taskCount: int,
-        dataProc: str,
-        dataTimes: str,
-        dataCosts: str
+            cls,
+            taskCount: int,
+            dataProc: str,
+            dataTimes: str,
+            dataCosts: str
     ) -> Iterable[Process]:
         procHeader, dataProc = dataProc.split('\n', 1)
         procs = np.fromstring(dataProc, dtype=int, sep=' ')

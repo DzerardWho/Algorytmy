@@ -70,7 +70,7 @@ class Graph(Sized):
         graph = cls(numOfNodes)
         edgeRegex = re.compile(r'(\d*)\(([+-]?\d*)\)')
         for i in rawData:
-            parent, numOfConnections, *connections = i.split(' ')
+            parent, numOfConnections, *connections = i.strip().split(' ')
             parent = int(parent[1:])
             numOfConnections = int(numOfConnections)
             if numOfConnections != len(connections):

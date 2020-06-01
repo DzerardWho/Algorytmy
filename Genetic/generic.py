@@ -9,21 +9,21 @@ from Graph import Graph
 
 class Generic:
     def __init__(
-        self,
-        fitFunction: Callable[[np.ndarray, Dict[str, Any]], np.ndarray],
-        graph: Graph,
-        genes: List[List[Callable[np.ndarray], np.ndarray]],
-        genesProbability: List[List[int]],
-        constants: Dict[str, Any] = None,
-        populationSize: int = 1000,
-        populationFromSelector: int = 200,
-        maxNumOfGenerations: int = 1000,
-        numOfReproductions: int = 333,  # clones
-        numOfMutations: int = 333,
-        numOfCrossbreads: int = 334,
-        stagnationLimit: int = 50,
-        minimalizeFittnes: bool = True,
-        verbose: bool = False,
+            self,
+            fitFunction: Callable[[np.ndarray, Dict[str, Any]], np.ndarray],
+            graph: Graph,
+            genes: List[List[Callable[np.ndarray], np.ndarray]],
+            genesProbability: List[List[int]],
+            constants: Dict[str, Any] = None,
+            populationSize: int = 1000,
+            populationFromSelector: int = 200,
+            maxNumOfGenerations: int = 1000,
+            numOfReproductions: int = 333,  # clones
+            numOfMutations: int = 333,
+            numOfCrossbreads: int = 334,
+            stagnationLimit: int = 50,
+            minimalizeFittnes: bool = True,
+            verbose: bool = False,
     ):
         if populationSize <= 0:
             raise ValueError("Population must be a positive inteager.")
@@ -133,8 +133,8 @@ class Generic:
         )
 
     def mutate(
-        self,
-        genotype: np.ndarray
+            self,
+            genotype: np.ndarray
     ) -> np.ndarray:
         mutationSpot = np.random.choice(np.arange(0, genotype.shape[0]))
         newGenotype = genotype.copy()

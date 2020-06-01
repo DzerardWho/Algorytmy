@@ -14,7 +14,7 @@ class Edge:
 class Node:
     def __init__(self, label: int):
         self.children: Dict[Node, int] = {}
-        self.parents: Dict[Node, int] = []
+        self.parents: Dict[Node, int] = {}
         self.label = label
         self.interIdx = str(id(self))
 
@@ -24,9 +24,9 @@ class Node:
 
     # nie mam pojęcia czy do czegoś się to przyda
     def removeChildren(
-        self,
-        label: int = None,
-        child: Node = None
+            self,
+            label: int = None,
+            child: Node = None
     ) -> int or None:
         if child is None:
             if label is None:
@@ -57,7 +57,7 @@ class Node:
 
     def __repr__(self):
         return f'T{self.label} {len(self.children)} ' \
-            f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
+               f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
 
     def __getitem__(self, key: Node) -> int:
         return self.children[key]
