@@ -48,6 +48,8 @@ class Process:
             raise ValueError("Incorrect number of processes.")
 
         procs = procs.reshape(procCount, 3)
+        for proc in procs:
+            proc[1] = proc[1] if proc[1] > 0 else 99999
 
         times = np.fromstring(dataTimes.split('\n', 1)[1], dtype=int, sep=' ')
         costs = np.fromstring(dataCosts.split('\n', 1)[1], dtype=int, sep=' ')

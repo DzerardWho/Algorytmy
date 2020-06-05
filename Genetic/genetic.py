@@ -1,19 +1,31 @@
 from __future__ import annotations
 
+from copy import deepcopy
 from typing import Any, Callable, Dict, List
 
 import numpy as np
 
 from Graph import Graph
 
+# TODO: input from user
+from TaskData import TaskData
 
-class Generic:
+ALPHA = 10
+BETA = 0.6
+GAMMA = 0.2
+DELTA = 0.2
+C = 3
+T = 3
+EPSILON = 3
+
+
+class Genetic:
     def __init__(
             self,
-            fitFunction: Callable[[np.ndarray, Dict[str, Any]], np.ndarray],
             graph: Graph,
-            genes: List[List[Callable[np.ndarray], np.ndarray]],
-            genesProbability: List[List[int]],
+            fitFunction: Callable[[np.ndarray, Dict[str, Any]], np.ndarray]= None,
+            genes: List[List[Callable[np.ndarray], np.ndarray]]= None,
+            genesProbability: List[List[int]] = None,
             constants: Dict[str, Any] = None,
             populationSize: int = 1000,
             populationFromSelector: int = 200,
@@ -24,17 +36,18 @@ class Generic:
             stagnationLimit: int = 50,
             minimalizeFittnes: bool = True,
             verbose: bool = False,
+            procs = None
     ):
-        if populationSize <= 0:
-            raise ValueError("Population must be a positive inteager.")
-
-        if numOfMutations + numOfCrossbreads != populationSize:
-            raise ValueError("Size of future populations must equal the size"
-                             " of the first generation.")
-
-        if not self.sameShape(genes, genesProbability):
-            raise ValueError("Shape of gene array does not match the shape of"
-                             "it's probability array.")
+        # if populationSize <= 0:
+        #     raise ValueError("Population must be a positive inteager.")
+        #
+        # if numOfMutations + numOfCrossbreads != populationSize:
+        #     raise ValueError("Size of future populations must equal the size"
+        #                      " of the first generation.")
+        #
+        # if not self.sameShape(genes, genesProbability):
+        #     raise ValueError("Shape of gene array does not match the shape of"
+        #                      "it's probability array.")
 
         self.maxNumOfGenerations = maxNumOfGenerations
         self.graph: Graph = graph
@@ -51,16 +64,14 @@ class Generic:
 
         # Nie czaję jego wzoru, jeżeli się tego nie znormalizuje,
         # to prawdopodobieństwo nie będzie równe 1
-        self.probability = self.normalize((
-            self.populationSize - np.arange(self.populationSize)
-        ) / self.populationSize)
+        self.probability = self.normalize((self.populationSize - np.arange(self.populationSize)) / self.populationSize)
 
         self.genesProbability = genesProbability
         self.genes = genes
 
         self.population = None
         self.fittness = np.empty(self.populationSize)
-        self.createInitialPopulation()
+        # self.createInitialPopulation()
 
         self.bestFittnessFinder = (lambda: np.min(self.fittness)) \
             if minimalizeFittnes else (lambda: np.max(self.fittness))
@@ -71,6 +82,7 @@ class Generic:
             self.__log = lambda *msg: print(*msg)
         else:
             self.__log = lambda *msg: None
+        self.procs = procs
 
     @staticmethod
     def sameShape(a1: List[Any], a2: List[Any]) -> bool:
@@ -80,6 +92,24 @@ class Generic:
     @staticmethod
     def normalize(v: np.ndarray):
         return v / np.sum(v)
+
+    def generate_embryo(self):
+        _embryo = []
+        _procs = deepcopy(self.procs)
+        for task in self.graph:
+            proc, _procs = self.get_random_proc(_procs)
+            _embryo.append([task, proc])
+        return _embryo
+
+    def get_random_nodes_value(self):
+        pass
+
+    def create_genotype_skeleton(self, nr_of_nodes):
+        pass
+
+    def get_genes_for_node(self):
+        # return proc and comm gene
+        pass
 
     def createInitialPopulation(self):
         # Zamienić dla węzła 0 gen 'Tak samo jak dla poprzednika' ???
@@ -194,3 +224,20 @@ class Generic:
             self.constants
         )
         self.__sortFittness()
+
+    def get_random_proc(self, procs):
+        # works on a copy of procs, doesnt modify original objects
+        _rand_proc = None
+        while not _rand_proc:
+            _i = np.random.randint(4)
+            if procs[_i].limit:
+                _rand_proc = procs[_i]
+                procs[_i].limit -= 1
+        return _rand_proc, procs
+
+
+
+if __name__ == '__main__':
+    _td = TaskData.loadFromFile(r"..\Grafy\Z_wagami\test.6")
+    gen = Genetic(graph=_td.graph, procs=_td.proc)
+    embryo = gen.generate_embryo()

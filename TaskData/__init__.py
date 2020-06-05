@@ -27,7 +27,7 @@ class TaskData:
 
         # data = [i.split('\n', 1)[1] for i in data]
         self.graph = Graph.fromString(data[0])
-        self.proc = Process.createMany(len(self.graph.nodes), *data[1:-1])
+        self.proc = Process.createMany(len(self.graph), *data[1:-1])
         self.channels = Channel.createMany(data[-1])
 
     @classmethod
@@ -40,7 +40,5 @@ class TaskData:
 
         return cls(path.read_text('utf-8'))
 
-
-TaskData.loadFromFile(r"Grafy\Bez_wag\GRAF.10")
 
 __all__ = [TaskData, Channel, Process]

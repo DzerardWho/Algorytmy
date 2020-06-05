@@ -56,7 +56,7 @@ class Node:
         return f'T{self.label}'
 
     def __repr__(self):
-        return f'T{self.label} {len(self.children)} ' \
+        return f'T{self.label} {len(self.children)} - children' \
                f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
 
     def __getitem__(self, key: Node) -> int:
