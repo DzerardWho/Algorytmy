@@ -1,5 +1,7 @@
 from __future__ import annotations
+import sys
 
+sys.path.append(".")
 from copy import deepcopy
 from typing import Any, Callable, Dict, List
 
@@ -7,9 +9,9 @@ import numpy as np
 
 from Graph import Graph
 
-# TODO: input from user
 from TaskData import TaskData
 
+# TODO: input from user
 ALPHA = 10
 BETA = 0.6
 GAMMA = 0.2
@@ -266,6 +268,6 @@ class Genetic:
 
 
 if __name__ == '__main__':
-    _td = TaskData.loadFromFile(r"..\Grafy\Z_wagami\test.6")
+    _td = TaskData.loadFromFile(r"Grafy\Z_wagami\test.6")
     gen = Genetic(graph=_td.graph, procs=_td.proc)
     genotype = gen.generate_genotype()
