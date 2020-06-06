@@ -25,25 +25,27 @@ class Genetic:
     def __init__(
             self,
             graph: Graph,
-            fitFunction: Callable[[np.ndarray, Dict[str, Any]], np.ndarray]= None,
-            genes: List[List[Callable[np.ndarray], np.ndarray]]= None,
+            # I hope this Nones are temporary?
+            fitFunction: Callable[
+                [np.ndarray, Dict[str, Any]], np.ndarray] = None,
+            genes: List[List[Callable[np.ndarray], np.ndarray]] = None,
             genesProbability: List[List[int]] = None,
             constants: Dict[str, Any] = None,
             populationSize: int = 1000,
             populationFromSelector: int = 200,
             maxNumOfGenerations: int = 1000,
-            numOfReproductions: int = 333,  # clones
-            numOfMutations: int = 333,
-            numOfCrossbreads: int = 334,
+            populationFromReproduction: int = 333,  # clones
+            populationFromMutations: int = 333,
+            populationFromCrossbreads: int = 334,
             stagnationLimit: int = 50,
             minimalizeFittnes: bool = True,
             verbose: bool = False,
-            procs = None
+            procs=None
     ):
         # if populationSize <= 0:
         #     raise ValueError("Population must be a positive inteager.")
         #
-        # if numOfMutations + numOfCrossbreads != populationSize:
+        # if populationFromMutations + populationFromCrossbreads != populationSize:
         #     raise ValueError("Size of future populations must equal the size"
         #                      " of the first generation.")
         #
@@ -60,13 +62,20 @@ class Genetic:
         self.stagnationLimit = stagnationLimit
         self.minimalizeFittness = minimalizeFittnes
 
-        self.numOfReproductions = numOfReproductions
-        self.numOfMutations = numOfMutations
-        self.numOfCrossbreads = numOfCrossbreads
+        self.populationFromReproduction = populationFromReproduction
+        self.populationFromCrossbreads = populationFromCrossbreads
 
-        # Nie czaję jego wzoru, jeżeli się tego nie znormalizuje,
-        # to prawdopodobieństwo nie będzie równe 1
-        self.probability = self.normalize((self.populationSize - np.arange(self.populationSize)) / self.populationSize)
+        # Count once what doesn't change later
+        self.__crossbreadSize = np.array([
+            np.ceil(self.populationFromCrossbreads / 2), 2
+        ], dtype=int)
+
+        self.populationFromMutations = populationFromMutations
+
+        self.probability = self.normalize(
+            (self.populationSize - np.arange(self.populationSize))
+            / self.populationSize
+        )
 
         self.genesProbability = genesProbability
         self.genes = genes
@@ -88,7 +97,7 @@ class Genetic:
 
     @staticmethod
     def sameShape(a1: List[Any], a2: List[Any]) -> bool:
-        #  todo: rekurencujnie
+        #  TODO: recursion
         return True
 
     @staticmethod
@@ -96,7 +105,13 @@ class Genetic:
         return v / np.sum(v)
 
     def generate_embryo(self):
+        # I think we need to generate as many embryos as large as the size
+        # of the entire population
         _embryo = []
+        # I think this is a bad idea to copy entire object if we modify only
+        # a primitive type. Much better approach would be to store num of used
+        # processes in original object and reset it between each generation of
+        # embryo
         _procs = deepcopy(self.procs)
         for task in self.graph:
             proc, _procs = self.get_random_proc(_procs)
@@ -114,9 +129,6 @@ class Genetic:
         pass
 
     def createInitialPopulation(self):
-        # Zamienić dla węzła 0 gen 'Tak samo jak dla poprzednika' ???
-        # Może lepiej to zaimplementować inaczej, jeżeli
-        # będzie trzeba zamieniać
         self.population = np.array(
             [
                 np.random.choice(
@@ -128,68 +140,64 @@ class Genetic:
         ).T
 
     def createNewPopulation(self):
-        basePopulation = self.selectBasePopulation()
-        # self.population = np.empty_like(self.population)
+        newPopulation = np.empty_like(self.population)
 
-        elements = 0
+        newPopulation[:self.populationFromReproduction] = \
+            self.reproduce(self.populationFromReproduction)
+        t = self.populationFromReproduction
 
-        # Przydałaby się mała refaktoryzacja
-        while elements < self.numOfReproductions:
-            self.population[elements] = self.reproduce(
-                np.random.choice(basePopulation)
-            )
-            elements += 1
+        newPopulation[t: t + self.populationFromCrossbreads] = \
+            self.crossbread(
+                self.reproduce(self.__crossbreadSize)
+        ).flatten()[:self.populationFromCrossbreads]
 
-        while elements < self.numOfReproductions + self.numOfMutations:
-            self.population[elements] = self.mutate(
-                np.random.choice(basePopulation)
-            )
-            elements += 1
+        t += self.populationFromCrossbreads
 
-        while elements < self.populationSize:
-            c1, c2 = self.mutate(
-                np.random.choice(basePopulation)
-            )
-            self.population[elements] = c1
-            elements += 1
-            if elements < self.populationSize:
-                self.population[elements] = c2
-                elements += 1
+        newPopulation[t:] = self.mutate(
+            self.reproduce(self.populationFromMutations))
 
-    def selectBasePopulation(self) -> np.ndarray:
+        self.population[:] = newPopulation
+
+    def reproduce(self, size: int or np.ndarray) -> np.ndarray:
         return np.random.choice(
             self.population,
-            self.populationFromSelector,
-            False,
+            size,
+            False,  # Can we reselect already selected genotypes?
             self.probability
         )
 
-    def mutate(
-            self,
-            genotype: np.ndarray
-    ) -> np.ndarray:
-        mutationSpot = np.random.choice(np.arange(0, genotype.shape[0]))
-        newGenotype = genotype.copy()
-        newGenotype[mutationSpot] = [
-            np.random.choice(
-                a=i,
-                p=j,
-            ) for i, j in zip(self.genes, self.genesProbability)
-        ]
-        return newGenotype
+    def mutate(self, genotype: np.ndarray) -> np.ndarray:
+        # TODO: rewrite function after implementation of decision tree
+        # In decision tree implement '~' operator for mutation
+        # This should let us to iterate over array on Numpy/C++ side
 
-    def crossbread(self, parent1, parent2):
-        splitSpot = np.random.choice(np.arange(0, parent1.shape[0]))
-        childNodes = self.graph[splitSpot].collectChildrenLabels()
-        child1, child2 = parent1.copy(), parent2.copy()
-
-        child1[childNodes] = parent2[childNodes]
-        child2[childNodes] = parent1[childNodes]
-
-        return child1, child2
-
-    def reproduce(self, genotype: np.ndarray):
+        # mutationSpot = np.random.choice(np.arange(0, genotype.shape[0]))
+        # newGenotype = genotype.copy()
+        # newGenotype[mutationSpot] = [
+        #     np.random.choice(
+        #         a=i,
+        #         p=j,
+        #     ) for i, j in zip(self.genes, self.genesProbability)
+        # ]
         return genotype
+
+    def crossbread(self, parents):
+        # TODO: rewrite function after implementation of decision tree
+        # In decision tree implement '^' operator for crossbread
+        # This should let us to iterate over array on Numpy/C++ side
+
+        # parent1, parent2 = parents
+        # splitSpot = np.random.choice(np.arange(0, parent1.shape[0]))
+        # childNodes = self.graph[splitSpot].collectChildrenLabels()
+        # child1, child2 = parent1.copy(), parent2.copy()
+
+        # child1[childNodes] = parent2[childNodes]
+        # child2[childNodes] = parent1[childNodes]
+
+        return parents
+
+    # def reproduce(self, genotype: np.ndarray):
+    #     return genotype
 
     def __sortFittness(self):
         positions = np.argsort(self.fittness)
@@ -266,8 +274,8 @@ class Genetic:
 
         return _tree
 
-
 if __name__ == '__main__':
+    # Out of curiosity: how do you run this file? Do you load it as a module?
     _td = TaskData.loadFromFile(r"Grafy\Z_wagami\test.6")
     gen = Genetic(graph=_td.graph, procs=_td.proc)
     genotype = gen.generate_genotype()

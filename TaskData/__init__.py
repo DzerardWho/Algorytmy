@@ -29,6 +29,10 @@ class TaskData:
         self.graph = Graph.fromString(data[0])
         self.proc = Process.createMany(len(self.graph), *data[1:-1])
         self.channels = Channel.createMany(data[-1])
+    
+    def __repr__(self):
+        # TODO: add repr
+        return ''
 
     @classmethod
     def loadFromFile(cls, path: str or Path) -> TaskData:

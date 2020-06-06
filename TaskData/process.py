@@ -35,7 +35,7 @@ class Process:
     ) -> Iterable[Process]:
         procHeader, dataProc = dataProc.split('\n', 1)
         procs = np.fromstring(dataProc, dtype=int, sep=' ')
-        # procCount = procs.shape[0] // 3
+
         tmp = procHeader.split(' ')
 
         if not (len(tmp) == 2 and tmp[1].isdigit()):
@@ -48,8 +48,8 @@ class Process:
             raise ValueError("Incorrect number of processes.")
 
         procs = procs.reshape(procCount, 3)
-        for proc in procs:
-            proc[1] = proc[1] if proc[1] > 0 else 99999
+
+        procs[procs[:, 1] == 0, 1] = np.iinfo(procs.dtype).max
 
         times = np.fromstring(dataTimes.split('\n', 1)[1], dtype=int, sep=' ')
         costs = np.fromstring(dataCosts.split('\n', 1)[1], dtype=int, sep=' ')
@@ -70,3 +70,7 @@ class Process:
         return np.array(
             [self.procs[index], self.times[index], self.costs[index]]
         )
+
+    def __repr__(self):
+        # TODO: add repr
+        return ''

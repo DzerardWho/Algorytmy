@@ -22,7 +22,7 @@ class Node:
         self.children[node] = weight
         node.parents[self] = weight
 
-    # nie mam pojęcia czy do czegoś się to przyda
+    # I have no idea if this will be useful
     def removeChildren(
             self,
             label: int = None,
@@ -56,7 +56,9 @@ class Node:
         return f'T{self.label}'
 
     def __repr__(self):
-        return f'T{self.label} {len(self.children)} - children' \
+        # Without the '- children' part, this repr is identical to the one used
+        # to load the data from
+        return f'T{self.label} {len(self.children)} ' \
                f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
 
     def __getitem__(self, key: Node) -> int:

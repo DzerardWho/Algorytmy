@@ -40,3 +40,7 @@ class Channel:
             values = [int(i) for i in values]
             out.append(cls(name, *values))
         return out
+
+    def __repr__(self):
+        # TODO: add repr
+        return ''
