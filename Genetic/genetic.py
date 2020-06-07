@@ -1,5 +1,7 @@
 from __future__ import annotations
+import sys
 
+sys.path.append(".")
 from copy import deepcopy
 from typing import Any, Callable, Dict, List
 
@@ -7,9 +9,9 @@ import numpy as np
 
 from Graph import Graph
 
-# TODO: input from user
 from TaskData import TaskData
 
+# TODO: input from user
 ALPHA = 10
 BETA = 0.6
 GAMMA = 0.2
@@ -117,7 +119,7 @@ class Genetic:
         return _embryo
 
     def get_random_nodes_value(self):
-        pass
+        return np.random.randint(2, high=len(self.graph))
 
     def create_genotype_skeleton(self, nr_of_nodes):
         pass
@@ -243,9 +245,37 @@ class Genetic:
                 procs[_i].limit -= 1
         return _rand_proc, procs
 
+    def generate_genotype(self):
+        embryo = gen.generate_embryo()
+        _nr_of_nodes = gen.get_random_nodes_value()
+        _gen_tree = gen.build_random_tree(_nr_of_nodes)
+    #     TODO rest of genotype creation
+
+    @staticmethod
+    def build_random_tree(nr_of_nodes):
+        _tree = Graph(nr_of_nodes)
+        _from = [_tree.nodes[0].label]
+        _available_nodes = [_n.label for _n in _tree.nodes[1:]]
+        while _available_nodes:
+            _new_from = _from[:]
+            for _f in _from:
+                for i in range(np.random.randint(nr_of_nodes)):
+                    _to = np.random.choice(_available_nodes)
+                    _tree.connectNodes(_f, _to)
+                    _available_nodes.remove(_to)
+                    if not _available_nodes:
+                        return _tree
+                    _new_from.append(_to)
+                    try:
+                        _new_from.remove(_from)
+                    except ValueError:
+                        pass
+            _from = _new_from
+
+        return _tree
 
 if __name__ == '__main__':
     # Out of curiosity: how do you run this file? Do you load it as a module?
-    _td = TaskData.loadFromFile(r"..\Grafy\Z_wagami\test.6")
+    _td = TaskData.loadFromFile(r"Grafy\Z_wagami\test.6")
     gen = Genetic(graph=_td.graph, procs=_td.proc)
-    embryo = gen.generate_embryo()
+    genotype = gen.generate_genotype()
