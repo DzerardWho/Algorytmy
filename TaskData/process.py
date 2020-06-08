@@ -6,7 +6,7 @@ from typing import Iterable
 import numpy as np
 
 
-@dataclass
+@dataclass(init=False)
 class Process:
     cost: int
     limit: int
@@ -24,6 +24,13 @@ class Process:
         self.universal = bool(universal)
         self.times = times
         self.costs = costs
+        self.used = 0
+
+    def reset(self):
+        self.used = 0
+
+    def __invert__(self):
+        self.reset()
 
     @classmethod
     def createMany(
@@ -64,11 +71,14 @@ class Process:
         times = times.reshape(taskCount, procCount).T
         costs = costs.reshape(taskCount, procCount).T
 
-        return [cls(*i) for i in zip(procs, times, costs)]
-
-    def __getitem__(self, index) -> np.ndarray:
         return np.array(
-            [self.procs[index], self.times[index], self.costs[index]]
+            [cls(*i) for i in zip(procs, times, costs)],
+            dtype=object
+        )
+
+    def __getitem__(self, index: int) -> np.ndarray:
+        return np.array(
+            [self.times[index], self.costs[index]]
         )
 
     def __repr__(self):

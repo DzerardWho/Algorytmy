@@ -23,7 +23,7 @@ class Channel:
         return self.availableProcs[index]
 
     @classmethod
-    def createMany(cls, data: str):
+    def createMany(cls, data: str) -> Iterable[Channel]:
         out = []
         tmp = data.strip().splitlines()
         tmp1 = tmp[0].split(' ')
@@ -39,7 +39,7 @@ class Channel:
             name, *values = i.split()
             values = [int(i) for i in values]
             out.append(cls(name, *values))
-        return out
+        return np.array(out, dtype=object)
 
     def __repr__(self):
         # TODO: add repr
