@@ -259,7 +259,9 @@ class Genetic:
         while _available_nodes:
             _new_from = _from[:]
             for _f in _from:
-                for i in range(np.random.randint(nr_of_nodes)):
+                _range = int(np.random.gamma(shape=int(nr_of_nodes/3), scale=0.5))
+                _range = _range if _range <= nr_of_nodes else nr_of_nodes
+                for i in range(_range):
                     _to = np.random.choice(_available_nodes)
                     _tree.connectNodes(_f, _to)
                     _available_nodes.remove(_to)
