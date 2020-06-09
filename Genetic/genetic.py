@@ -31,7 +31,6 @@ class Genetic:
             genesProbability: List[List[int]] = None,
             constants: Dict[str, Any] = None,
             populationSize: int = 1000,
-            populationFromSelector: int = 200,
             maxNumOfGenerations: int = 1000,
             populationFromReproduction: int = 333,  # clones
             populationFromMutations: int = 333,

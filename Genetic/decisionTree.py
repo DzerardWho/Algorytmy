@@ -55,8 +55,9 @@ class Node:
 
 
 class DecisionTree:
-    def __init__(self, root: Node):
+    def __init__(self, root: Node, nodes: List[Node]):
         self.root = root
+        self.nodes = nodes
 
     def render(self):
         graph = Digraph('decisionTree')
@@ -66,8 +67,8 @@ class DecisionTree:
     @staticmethod
     def getRandomProcess(procs: Iterable[Process]):
         for i in np.random.permutation(procs):
-            if i.limit:
-                i.limit -= 1
+            if i.used < i.limit:
+                i.used += 1
                 return i
         raise ValueError("Not enough resources to choose from.")
 
@@ -88,6 +89,7 @@ class DecisionTree:
         embryo = Node(cls.createEmbryo(task.graph, task.proc), 'embryo')
         numOfNodes = np.random.randint(2, len(task.graph) - 1)
 
+        nodes = [embryo]
         parents = [embryo]
 
         for i in range(numOfNodes):
@@ -97,7 +99,8 @@ class DecisionTree:
             child = Node(parent.data[:sizeOfPassedData], str(i))
             child.addParent(parent)
 
+            nodes.append(child)
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        return cls(embryo)
+        return cls(embryo, nodes)
