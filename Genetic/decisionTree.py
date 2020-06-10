@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Iterable, List
 from dataclasses import dataclass, field
 from graphviz import Digraph
+from copy import deepcopy
 
 import numpy as np
 
@@ -23,15 +24,20 @@ class TaskImplementation:
         time, cost = proc.proc[task.label]
         self.weight = time * cost
 
+    def __deepcopy__(self, memo):
+        return TaskImplementation(self.task, deepcopy(self.proc, memo))
+
 
 class Embryo:
     def __init__(
         self,
-        data: Iterable[List[GNode, Process]]
+        processData: Iterable[TaskImplementation],
+        data: Iterable[int] = None,
+        children: Iterable[Node] = None
     ):
         self.processData = data
-        self.data = [i.task.label for i in np.sort(data)]
-        self.children = []
+        self.data = data or np.array([i.task.label for i in np.sort(data)])
+        self.children = children or []
         self.label = 'embryo'
         self.interIdx = str(id(self))
 
@@ -43,6 +49,13 @@ class Embryo:
 
     def __len__(self):
         return len(self.data)
+
+    def __deepcopy__(self, memo):
+        return Embryo(
+            deepcopy(self.processData),
+            self.data.copy(),
+            deepcopy(self.children)
+        )
 
 
 class Node:
@@ -72,6 +85,19 @@ class Node:
     def __len__(self):
         return len(self.data)
 
+    def __deepcopy__(self, memo):
+        out = Node(self.embryo, self.data.copy())
+        for i in self.children:
+            t = deepcopy(i, memo)
+            t.addParent(out)
+        return out
+
+    def collectChildren(self) -> List[Node]:
+        out = [self]
+        for i in self.children:
+            out.extend(i.collectChildren())
+        return out
+
     # NumPy thinks, that this object is annother array when used
     # in np.random.choice
     # def __getitem__(self, index: int):
@@ -79,10 +105,26 @@ class Node:
 
 
 class DecisionTree:
-    def __init__(self, embryo: Embryo, nodes: List[Node], procInst):
+    def __init__(
+            self,
+            embryo: Embryo,
+            nodes: List[Node],
+            procInstances: List[ProcessInstance]
+    ):
         self.embryo = embryo
         self.nodes = nodes
-        self.procInstancess = procInst
+        self.procInstances = procInstances
+
+    def __deepcopy__(self, memo):
+        embryo = deepcopy(self.embryo, memo)
+        return DecisionTree(
+            embryo,
+            embryo.children[0].collectChildren(),
+            deepcopy(self.procInstances)
+        )
+
+    def execGenes(self):
+        pass
 
     def render(self):
         graph = Digraph('decisionTree')
@@ -90,22 +132,25 @@ class DecisionTree:
         graph.render(format='png')
 
     @staticmethod
-    def getRandomProcess(procs: Iterable[Process], procInstancess: Iterable[Iterable[ProcessInstance]]):
+    def getRandomProcess(
+            procs: Iterable[Process],
+            procInstances: Iterable[Iterable[ProcessInstance]]
+    ):
         for i in np.random.permutation(procs):
-            n = len(procInstancess[i.idx])
+            n = len(procInstances[i.idx])
             if n >= i.limit:
                 continue
             p = np.random.randint(n + 1)
             if p == n:
                 out = ProcessInstance(i)
-                procInstancess[i.idx].append(out.allocate())
+                procInstances[i.idx].append(out.allocate())
             else:
-                out = procInstancess[i.idx][p]
+                out = procInstances[i.idx][p]
                 tmp = out.allocate()
                 if tmp is not out:
                     if n + 1 >= i.limit:
                         continue
-                    procInstancess[i.idx].append(tmp)
+                    procInstances[i.idx].append(tmp)
                     return tmp
             return out
         raise ValueError("Not enough resources to choose from.")
@@ -114,12 +159,17 @@ class DecisionTree:
     def createEmbryo(
             tasks: Graph, procs: Iterable[Process]
     ) -> Iterable[TaskImplementation, Iterable[Iterable[ProcessInstance]]]:
-        procInstancess = [[] for i in range(len(procs))]
+        procInstances = [[] for i in range(len(procs))]
         out = np.array(
-            [TaskImplementation(task, DecisionTree.getRandomProcess(procs, procInstancess))
-             for task in tasks]
+            [
+                TaskImplementation(
+                    task,
+                    DecisionTree.getRandomProcess(procs, procInstances)
+                )
+                for task in tasks
+            ]
         )
-        return out, procInstancess
+        return out, procInstances
 
     @classmethod
     def createRandomTree(cls, task: TaskData) -> DecisionTree:
@@ -141,3 +191,37 @@ class DecisionTree:
                 parents.append(child)
 
         return cls(embryo, nodes, procInst)
+
+    def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
+        def removeNodes(allNodes, toRemove):
+            for i in toRemove:
+                allNodes.pop(i, None)
+
+        split1: Node = np.random.choice(self.nodes)
+        split2: Node = np.random.choice(other.nodes)
+
+        children1: List[Node] = split1.collectChildren()
+        children2: List[Node] = split2.collectChildren()
+
+        removeNodes(self.nodes, children1)
+        removeNodes(other.nodes, children2)
+        self.nodes.extends(children2)
+        other.nodes.extends(children1)
+
+        split1.parent.children.pop(split1, None)
+        split2.parent.children.pop(split2, None)
+
+        tmp = split2.parent
+        split2.addParent(split1.parent)
+        split1.addParent(tmp)
+
+        return self, other
+
+    def __xor__(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
+        return self.crossbread(other)
+
+    def mutate(self):
+        pass
+
+    def __invert__(self) -> DecisionTree:
+        return self.mutate()

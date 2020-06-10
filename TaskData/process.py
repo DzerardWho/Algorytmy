@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Iterable, List
+from copy import deepcopy
 
 import numpy as np
 
@@ -81,7 +82,7 @@ class ProcessInstance:
     def __init__(self, proc: Process):
         self.proc = proc
         self.numOfAllocations = 0
-        self.channs: List[str] = []
+        self.channels: List[str] = []
 
     def allocate(self) -> ProcessInstance:
         if not self.proc.universal and self.numOfAllocations != 0:
@@ -94,3 +95,9 @@ class ProcessInstance:
     def deallocate(self) -> bool:
         self.numOfAllocations -= 1
         return bool(self.numOfAllocations)
+
+    def __deepcopy__(self, memo):
+        t = ProcessInstance(self.proc)
+        t.numOfAllocations = self.numOfAllocations
+        t.channels = deepcopy(self.channels, memo)
+        return t
