@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Iterable
+from typing import Iterable, List
 
 import numpy as np
 
@@ -16,21 +16,16 @@ class Process:
 
     def __init__(
             self,
+            idx: int,
             proc: Iterable[int],
             times: Iterable[int],
             costs: Iterable[int]
     ):
+        self.idx = idx
         self.cost, self.limit, universal = proc
         self.universal = bool(universal)
         self.times = times
         self.costs = costs
-        self.used = 0
-
-    def reset(self):
-        self.used = 0
-
-    def __invert__(self):
-        self.reset()
 
     @classmethod
     def createMany(
@@ -72,7 +67,7 @@ class Process:
         costs = costs.reshape(taskCount, procCount).T
 
         return np.array(
-            [cls(*i) for i in zip(procs, times, costs)],
+            [cls(i[0], *i[1]) for i in enumerate(zip(procs, times, costs))],
             dtype=object
         )
 
@@ -81,6 +76,21 @@ class Process:
             [self.times[index], self.costs[index]]
         )
 
-    def __repr__(self):
-        # TODO: add repr
-        return ''
+
+class ProcessInstance:
+    def __init__(self, proc: Process):
+        self.proc = proc
+        self.numOfAllocations = 0
+        self.channs: List[str] = []
+
+    def allocate(self) -> ProcessInstance:
+        if not self.proc.universal and self.numOfAllocations != 0:
+            out = ProcessInstance(self.proc)
+            out.allocate()
+            return out
+        self.numOfAllocations += 1
+        return self
+
+    def deallocate(self) -> bool:
+        self.numOfAllocations -= 1
+        return bool(self.numOfAllocations)

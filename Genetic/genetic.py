@@ -285,6 +285,10 @@ class Genetic:
 if __name__ == '__main__':
     from Genetic.decisionTree import DecisionTree
     _td = TaskData.loadFromFile(r"Grafy\Z_wagami\GRAPH.20")
+    # print(_td.proc)
+    # print(_td.channels)
+    # for i in _td.proc:
+    #     print(i.cost)
     # _td = TaskData.loadFromFile(r"Grafy\Z_wagami\test.6")
     tree = DecisionTree.createRandomTree(_td)
     tree.render()

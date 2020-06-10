@@ -40,7 +40,3 @@ class Channel:
             values = [int(i) for i in values]
             out.append(cls(name, *values))
         return np.array(out, dtype=object)
-
-    def __repr__(self):
-        # TODO: add repr
-        return ''

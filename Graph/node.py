@@ -55,11 +55,11 @@ class Node:
     def __str__(self):
         return f'T{self.label}'
 
-    def __repr__(self):
-        # Without the '- children' part, this repr is identical to the one used
-        # to load the data from
-        return f'T{self.label} {len(self.children)} ' \
-               f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
+    # def __repr__(self):
+    #     # Without the '- children' part, this repr is identical to the one used
+    #     # to load the data from
+    #     return f'T{self.label} {len(self.children)} ' \
+    #            f'{" ".join([f"{k}({v})" for k, v in self.children.items()])}'
 
     def __getitem__(self, key: Node) -> int:
         return self.children[key]
