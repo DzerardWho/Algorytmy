@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog
+from typing import List, Iterable
 
 window = tk.Tk()
 window.title("AiSD II Projekt")
@@ -14,29 +15,35 @@ title.pack(pady=20)
 frame = tk.LabelFrame(window, padx=5, pady=10)
 frame.pack()
 
+DEFAULT = [10, 3, 3, 3, 0.33, 0.33, 0.34, 0.33, 0.33, 0.34, 0.2, 0.2, 0.2, 0.2, 0.2]
+
+def setValues(list):
+    for i in range(0, 4):
+        AllElements[i].delete(0, tk.END)
+        AllElements[i].insert(0, list[i])
+
+    for i in range(4, 15):
+        AllElements[i].set(list[i])
+
+
+def getValuse():
+    lst = []
+    for i in range(0,4):
+        lst.append(str(AllElementsToSave[i].get()))
+    
+    for i in range(4, 15):
+        lst.append(str(AllElementsToSave[i].cget('text')))
+        
+    return lst
+
 
 def resetToDefault():
-
     entryAlfa.delete(0, tk.END)
     entryC.delete(0, tk.END)
     entryT.delete(0, tk.END)
     entryEpsilon.delete(0, tk.END)
 
-    entryAlfa.insert(0, '10')
-    entryC.insert(0, '3')
-    entryT.insert(0, '3')
-    entryEpsilon.insert(0, '3')
-    sliderBeta.set(0.33)
-    sliderGamma.set(0.33)
-    sliderDelta.set(0.34)
-    sliderChCost.set(0.33)
-    sliderChTrans.set(0.33)
-    sliderChU.set(0.34)
-    sliderProcCheapTask.set(0.2)
-    sliderProcFastTask.set(0.2)
-    sliderProcTK.set(0.2)
-    sliderProcAsBef.set(0.2)
-    sliderProcUse.set(0.2)
+    setValues(DEFAULT)
 
 
 def sliderOper(v):
@@ -83,9 +90,13 @@ def openConfig():
 
 
 def loadConfig():
-    TODO
-    #TO DO
-
+    f = open(window.openConfigName, 'r')
+    lines = f.readlines()
+    f.close()
+    lst = []
+    for line in lines:
+        lst.append(float(line))
+    setValues(lst)
 
 def chooseToSaveConfig():
     window.saveConfigName = filedialog.askopenfilename(title='Wybierz plik zapisu', filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
@@ -94,7 +105,11 @@ def chooseToSaveConfig():
 
 
 def saveConfig():
-    TODO #TO DO
+    f = open(window.saveConfigName, 'w')
+    l = getValuse()
+    for elem in l:
+        f.write(elem + '\n')
+    f.close()
 
 def chooseGraph():
     window.saveChooseGraph = filedialog.askopenfilename(title='Wybierz plik', filetypes=(("txt files", "*.txt"), ("all files", "*.*")))
@@ -366,5 +381,13 @@ textChooseGraph.grid(row=1, column=0)
 
 sBarChooseGraph.config(command=textChooseGraph.xview)
 
+AllElements = (entryAlfa, entryC, entryT, entryEpsilon, sliderBeta, sliderGamma,
+            sliderDelta, sliderChCost, sliderChTrans, sliderChU, sliderProcCheapTask,
+            sliderProcFastTask, sliderProcTK, sliderProcAsBef, sliderProcUse)
+
+AllElementsToSave = (entryAlfa, entryC, entryT, entryEpsilon, labelBeta,
+                labelGamma, labelDelta, labelChCost, labelChTrans, labelChU,
+                labelProcCheapTask, labelProcFastTask, labelProcTK, labelProcAsBef,
+                labelProcUse)
 
 window.mainloop()
