@@ -204,9 +204,6 @@ class Genes:
             np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=CONFIG.channel_probability,size=size)))
 
 
-
-
-
 class GeneInfo:
     def __init__(self,
                  td: TaskData,
