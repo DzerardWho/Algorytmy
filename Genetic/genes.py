@@ -8,13 +8,7 @@ import numpy as np
 
 sys.path.append(".")
 
-from decisionTree import TaskImplementation
-from Graph import Graph
-from Graph import Node as GNode
 from TaskData import Process, TaskData
-from TaskData.process import ProcessInstance
-
-
 
 """
 Dla jednostek obliczeniowych:

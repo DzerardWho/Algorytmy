@@ -11,7 +11,7 @@ from Graph import Graph, Node as GNode
 from TaskData import TaskData, Process
 from TaskData.process import ProcessInstance
 
-from Genetic import GeneInfo
+from Genetic.genes import GeneInfo,Genes
 
 @dataclass(init=False, order=True)
 class TaskImplementation:
