@@ -50,7 +50,8 @@ class Genetic:
         return v / np.sum(v)
 
     def createInitialPopulation(self):
-        self.population = np.array([DecisionTree.createRandomTree() for i in range(self.populationSize)])
+        self.population = np.array(
+            [DecisionTree.createRandomTree() for i in range(self.populationSize)])
 
     def createNewPopulation(self):
         newPopulation = np.empty_like(self.population)
@@ -94,7 +95,7 @@ class Genetic:
         self.fittness[:] = self.fittnes[positions]
         self.population[:] = self.population[positions]
 
-    def compute(self):
+    def compute(self) -> int:
         lastBestFittness = np.inf
         lastChangeOfBestFittness = 0
         for gen in range(self.maxNumOfGenerations - 1):
@@ -108,7 +109,7 @@ class Genetic:
             if bestFittness == lastBestFittness:
                 lastChangeOfBestFittness += 1
                 if lastChangeOfBestFittness >= self.stagnationLimit:
-                    return
+                    return gen
             else:
                 lastBestFittness = bestFittness
                 lastChangeOfBestFittness = 0
@@ -121,3 +122,7 @@ class Genetic:
             self.constants
         )
         self.__sortFittness()
+        return self.maxNumOfGenerations
+
+    def returnBest(self) -> DecisionTree:
+        return self.population[0]

@@ -111,6 +111,10 @@ def run():
         [values['k1'], values['k2'], values['k3']]
     ]
 
+    genetic = Genetic()
+    generations = genetic.compute()
+    best = genetic.returnBest()
+
 
 def sliderOper(v):
     beta = float(sliderBeta.get())
