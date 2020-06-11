@@ -143,26 +143,30 @@ class Genes:
 
     @staticmethod
     def K1(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
-        return
         for id in data:
             imp = embryo.processData[ id ]
+            parent_proc = imp.proc
             for e in imp.task.edges:
-                costs={ chan: for chan in info.channels }
-        """
-            PROBLEMY:
-            zasób może być podłączony do kilku kanalów
-            więc najmniejszy koszt będzie dla kanałów już podłączonych
-            tylko teraz pytanie jeśli tańszy będzie kanał niepodłączony
-            to oczywiste jest że go podłączam ale czy
-            teraz powinienem odpowiednio odłączyć nie używane?
-        """
-
-
-        
-                
-
-        
-
+                child_proc = embryo.processData[ e.child.label ].proc
+                availableChannels = [
+                    chan for chan in info.chans 
+                    if chan.availableProcs[ child_proc.proc.idx ]
+                    and chan.availableProcs[ parent_proc.proc.idx ]
+                ]
+                minCost = float('inf')
+                new_chan=None
+                for chan in availableChannels:
+                    cost=0
+                    if chan not in parent_proc.channels:
+                        cost+=chan.cost
+                    if chan not in child_proc.channels:
+                        cost+=chan.cost
+                    if cost<minCost:
+                        minCost=cost
+                        new_chan=chan
+                embryo.edgesData[e] = new_chan
+                parent_proc.channels[ new_chan ] = True
+                child_proc.channels[ new_chan ] = True
 
     @staticmethod
     def K2(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
@@ -218,8 +222,13 @@ if __name__ == "__main__":
     #Genes.O3(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
     #Genes.O4(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
     #Genes.O5(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
-    #$Genes.K1(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
-    #Genes.K2(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+
+    Genes.K1(tree.nodes[0].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K1(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K1(tree.nodes[2].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K2(tree.nodes[0].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K2(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K2(tree.nodes[2].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K3(tree.nodes[0].data, GeneInfo(_td, tree.procInstances), tree.embryo)
     Genes.K3(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
     Genes.K3(tree.nodes[2].data, GeneInfo(_td, tree.procInstances), tree.embryo)
-    Genes.K3(tree.nodes[3].data, GeneInfo(_td, tree.procInstances), tree.embryo)
