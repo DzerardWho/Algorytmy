@@ -57,7 +57,7 @@ class Genes:
         return t
 
     @staticmethod
-    def O1(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
+    def O1(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
         for i, id in enumerate(data):
             imp = embryo.processData[id]
 
@@ -68,11 +68,11 @@ class Genes:
             ], key=lambda v: v[1])[0]
 
             embryo.processData[id].proc = Genes.allocateProcInstance(
-                procs.defs[proc_id], procs.instances)
+                procs.defs[proc_id], procs.instances[proc_id])
 
 
     @staticmethod
-    def O2(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
+    def O2(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
         for i, id in enumerate(data):
             imp = embryo.processData[id]
             proc_id = min([
@@ -82,10 +82,10 @@ class Genes:
             ], key=lambda v: v[1])[0]
 
             embryo.processData[id].proc = Genes.allocateProcInstance(
-                procs.defs[proc_id], procs.instances)
+                procs.defs[proc_id], procs.instances[proc_id])
 
     @staticmethod
-    def O3(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
+    def O3(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
 
         for i, id in enumerate(data):
             imp = embryo.processData[id]
@@ -96,10 +96,10 @@ class Genes:
             ], key=lambda v: v[1])[0]
 
             embryo.processData[id].proc = Genes.allocateProcInstance(
-                procs.defs[proc_id], procs.instances)
+                procs.defs[proc_id], procs.instances[proc_id])
 
     @staticmethod
-    def O4(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
+    def O4(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
 
         for id in data:
             node = embryo.processData[id]
@@ -115,10 +115,10 @@ class Genes:
 
                 proc_id = min(proc_count.items(), key=lambda x: x[1])[0]
                 embryo.processData[id].proc = Genes.allocateProcInstance(
-                    procs.defs[proc_id], procs.instances)
+                    procs.defs[proc_id], procs.instances[proc_id])
 
     @staticmethod
-    def O5(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
+    def O5(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
         for i, id in enumerate(data):
             proc_id = min([
                 (proc_id, len(procs.instances[proc_id]))
@@ -142,34 +142,52 @@ class Genes:
     """
 
     @staticmethod
-    def K1(data: List[TaskImplementationID] ,procs :ProcsInfo ,embryo: Embryo):
-
-        for id in data:
-            imp = embryo.processData[ id ]
-            for e in imp.task.edges:
-                if e in embryo.edgesData:
-                    pass
+    def K1(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        pass
+        
                 
 
         
 
 
     @staticmethod
-    def K2():
-        pass
+    def K2(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        for id in data:
+            imp = embryo.processData[ id ]
+            for e in imp.task.edges:
+                s,t = e.parent,e.child
+                parent_proc = embryo.processData[ s.label ].proc.proc.idx
+                child_proc = embryo.processData[ t.label ].proc.proc.idx
+                chan_max = max([chan for chan in info.chans if chan.availableProcs[parent_proc] and chan.availableProcs[child_proc]],key=lambda c:c.rate)
+                embryo.edgesData[e] = chan_max
+
 
     @staticmethod
-    def K3():
-        pass
+    def K3(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        count={ chan:0 for chan in info.chans }
+        #proc_id = min(proc_count.items(), key=lambda x: x[1])[0]
+        for edge,chan in embryo.edgesData.items():
+            count[ chan ]+=1
+        for id in data:
+            imp=embryo.processData[ id ]
+            for e in imp.task.edges:
+                chan_to_use=min( count.items(),key=lambda x:x[1] )[0]
+                embryo.edgesData[e]=chan_to_use
+                count[chan_to_use]+=1
+
+            
 
 
-class ProcsInfo:
+
+class GeneInfo:
     def __init__(self,
-                 definitions: List[Process],
-                 instances: Iterable[Iterable[ProcessInstance]]
+                 td: TaskData,
+                 instances: Iterable[Iterable[ProcessInstance]],
                  ):
-        self.defs = definitions
+        self.defs = td.proc
+        self.chans=td.channels
         self.instances = instances
+        
 
 
 if __name__ == "__main__":
@@ -181,10 +199,13 @@ if __name__ == "__main__":
     
 
 
-    #Genes.O1(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-    #Genes.O2(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-    #Genes.O3(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-    #Genes.O4(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-    #Genes.O5(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-
-    Genes.K1(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    #Genes.O1(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #Genes.O2(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #Genes.O3(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #Genes.O4(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #Genes.O5(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #$Genes.K1(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    #Genes.K2(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K3(tree.nodes[1].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K3(tree.nodes[2].data, GeneInfo(_td, tree.procInstances), tree.embryo)
+    Genes.K3(tree.nodes[3].data, GeneInfo(_td, tree.procInstances), tree.embryo)

@@ -22,6 +22,9 @@ class Channel:
     def __getitem__(self, index: int) -> bool:
         return self.availableProcs[index]
 
+    def __hash__(self):
+        return hash(self.name)
+
     @classmethod
     def createMany(cls, data: str) -> Iterable[Channel]:
         out = []
