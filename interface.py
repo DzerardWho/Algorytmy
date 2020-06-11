@@ -1,28 +1,26 @@
 from tkinter import Tk, Label, Text, Entry, LabelFrame, Button,\
-    Scale, Scrollbar, HORIZONTAL, END, filedialog
+    Scale, Scrollbar, HORIZONTAL, END, filedialog, messagebox
 from configparser import ConfigParser
 
-DEFAULT = {'alfa': 10.0,
+
+DEFAULT = {'alpha': 10.0,
             'epsilon': 3.0,
             'c': 3.0,
             't': 3.0,
-            'Operator_Selekcji': 0.33,
-            'Operator_Krzyżowania': 0.33,
-            'Operator_Mutacji': 0.34,
-            'Najmniejszy_Wzrost_Kosztu_Kan': 0.33,
-            'Najszybsza_Transmisja_Kan': 0.33,
-            'Najrzadziej_Używany_Kan': 0.34,
-            'Najtańsza_Impl_Zadań': 0.2,
-            'Najszybsza_Impl_Zadań': 0.2,
-            'Najmniejsze_TK': 0.2,
-            'Jak_Dla_Poprzednika': 0.2,
-            'Najmniej_Obciążone': 0.2}
+            'reproduction': 0.33,
+            'crossbread': 0.33,
+            'mutate': 0.34,
+            'k1': 0.33,
+            'k2': 0.33,
+            'k3': 0.34,
+            'o1': 0.2,
+            'o2': 0.2,
+            'o3': 0.2,
+            'o4': 0.2,
+            'o5': 0.2}
 
 
-config = ConfigParser()
-config['DEFAULT'] = DEFAULT
-with open('interface.ini', 'w') as configfile:
-    config.write(configfile)
+values = DEFAULT.copy()
 
 
 window = Tk()
@@ -39,25 +37,48 @@ frame = LabelFrame(window, padx=5, pady=10)
 frame.pack()
 
 
-def setValues(lst):
-    
-    for i in range(0, 4):
-        AllElements[i].delete(0, END)
-        AllElements[i].insert(0, lst[i])
+def setValues(newValues):
+    # keys = list(values.keys())
+    # for i in range(4):
+    #     values[keys[i]] = float(lst[i])
+    #     AllElements[i].delete(0, END)
+    #     AllElements[i].insert(0, lst[i])
 
-    for i in range(4, 15):
-        AllElements[i].set(lst[i])
+    # for i in range(4, 15):
+    #     values[keys[i]] = float(lst[i])
+    #     AllElements[i].set(lst[i])
+    for k, v in newValues.items():
+        values[k] = float(v)
+        if type(AllElements[k]) is Scale:
+            AllElements[k].set(v)
+        else:
+            AllElements[k].delete(0, END)
+            AllElements[k].insert(0, v)
 
 
-def getValues():
-    lst = []
-    for i in range(0, 4):
-        lst.append(str(AllElementsToGet[i].get()))
+def loadFromTextInput():
+    a = entryAlfa.get().strip()
+    e = entryEpsilon.get().strip()
+    c = entryC.get().strip()
+    t = entryT.get().strip()
+    if any(i == '' for i in [a, e, c, t]):
+        messagebox.showerror('Błąd', 'Pola tekstowe nie mogą być puste.')
+        return False
+    values['alpha'] = float(a)
+    values['epsilon'] = float(e)
+    values['c'] = float(c)
+    values['t'] = float(t)
+    return True
 
-    for i in range(4, 15):
-        lst.append(str(AllElementsToGet[i].cget('text')))
+# def getValues():
+#     lst = []
+#     for i in range(0, 4):
+#         lst.append(str(AllElementsToGet[i].get()))
 
-    return lst
+#     for i in range(4, 15):
+#         lst.append(str(AllElementsToGet[i].cget('text')))
+
+#     return lst
 
 
 def resetToDefault():
@@ -66,7 +87,7 @@ def resetToDefault():
     entryT.delete(0, END)
     entryEpsilon.delete(0, END)
 
-    setValues(list(DEFAULT.values()))
+    setValues(DEFAULT)
 
 
 def run():
@@ -80,56 +101,68 @@ def getGraph():
 
 
 def sliderOper(v):
-    beta = sliderBeta.get()
-    gamma = sliderGamma.get()
-    delta = sliderDelta.get()
-    sum = float(beta) + float(gamma) + float(delta)
+    beta = float(sliderBeta.get())
+    gamma = float(sliderGamma.get())
+    delta = float(sliderDelta.get())
+    sum = beta + gamma + delta
     if sum != 0:
-        labelBeta.config(text=str(round(float(beta)/sum, 3)))
-        labelGamma.config(text=str(round(float(gamma)/sum, 3)))
-        labelDelta.config(text=str(round(float(delta)/sum, 3)))
-
+        labelBeta.config(text=str(round(beta/sum, 3)))
+        values['reproduction'] = beta/sum
+        labelGamma.config(text=str(round(gamma/sum, 3)))
+        values['crossbread'] = gamma/sum
+        labelDelta.config(text=str(round(delta/sum, 3)))
+        values['mutate'] = delta/sum
 
 
 def sliderChan(v):
-    cost = sliderChCost.get()
-    trans = sliderChTrans.get()
-    use = sliderChU.get()
-    sum = float(cost) + float(trans) + float(use)
+    cost = float(sliderChCost.get())
+    trans = float(sliderChTrans.get())
+    use = float(sliderChU.get())
+    sum = cost + trans + use
     if sum != 0:
-        labelChCost.config(text=str(round(float(cost)/sum, 3)))
-        labelChTrans.config(text=str(round(float(trans)/sum, 3)))
-        labelChU.config(text=str(round(float(use)/sum, 3)))
+        labelChCost.config(text=str(round(cost/sum, 3)))
+        values['k1'] = cost / sum
+        labelChTrans.config(text=str(round(trans/sum, 3)))
+        values['k2'] = trans / sum
+        labelChU.config(text=str(round(use/sum, 3)))
+        values['k3'] = use / sum
 
 
 def sliderProc(v):
-    cheapTask = sliderProcCheapTask.get()
-    fastTask = sliderProcFastTask.get()
-    tk = sliderProcTK.get()
-    asbef = sliderProcAsBef.get()
-    use = sliderProcUse.get()
-    sum = float(cheapTask)+float(fastTask)+float(tk)+float(asbef)+float(use)
+    cheapTask = float(sliderProcCheapTask.get())
+    fastTask = float(sliderProcFastTask.get())
+    tk = float(sliderProcTK.get())
+    asbef = float(sliderProcAsBef.get())
+    use = float(sliderProcUse.get())
+
+    sum = cheapTask + fastTask + tk + asbef + use
     if sum != 0:
-        labelProcCheapTask.config(text=str(round(float(cheapTask)/sum, 3)))
-        labelProcFastTask.config(text=str(round(float(fastTask)/sum, 3)))
-        labelProcTK.config(text=str(round(float(tk)/sum, 3)))
-        labelProcAsBef.config(text=str(round(float(asbef)/sum, 3)))
-        labelProcUse.config(text=str(round(float(use)/sum, 3)))
+        labelProcCheapTask.config(text=str(round(cheapTask/sum, 3)))
+        values['o1'] = cheapTask / sum
+        labelProcFastTask.config(text=str(round(fastTask/sum, 3)))
+        values['o2'] = fastTask / sum
+        labelProcTK.config(text=str(round(tk/sum, 3)))
+        values['o3'] = tk / sum
+        labelProcAsBef.config(text=str(round(asbef/sum, 3)))
+        values['o4'] = asbef / sum
+        labelProcUse.config(text=str(round(use/sum, 3)))
+        values['o5'] = use / sum
 
 
 def openConfig():
-    window.openConfigName = filedialog.askopenfilename(
+    name = filedialog.askopenfilename(
         title='Wybierz plik',
-        filetypes=(("txt files", "*.txt"),
-                   ("all files", "*.*")))
-    textGetFile.delete('1.0', END)
-    textGetFile.insert(END, window.openConfigName)
+        filetypes=(("all files", "*.*"),)).strip()
+    if name not in ['', '\n']:
+        textGetFile.delete('1.0', END)
+        textGetFile.insert(END, name)
+    return name
 
 
 def chooseToLoadConfig():
     name = filedialog.askopenfilename(
         title='Wybierz plik do wczytania',
-        filetypes=(("txt files", "*.txt"),
+        filetypes=(("ini files", "*.ini"),
                    ("all files", "*.*"))).strip()
     if name not in ['', '\n']:
         textGetFile.delete('1.0', END)
@@ -143,15 +176,15 @@ def loadConfig():
         name = chooseToLoadConfig()
         if name in ['', '\n']:
             return
-    with open(name, 'r') as f:
-        setValues([float(i) for i in f.readlines()])
+    config = ConfigParser()
+    config.read(name)
+    setValues(config['Values'])
 
 
 def chooseToSaveConfig():
     name = filedialog.asksaveasfilename(
         title='Wybierz plik zapisu',
-        filetypes=(("txt files", "*.txt"),
-                   ("all files", "*.*"))).strip()
+        filetypes=(("ini files", "*.ini"),)).strip()
     print(repr(name))
     if name != '\n':
         textSaveFile.delete('1.0', END)
@@ -165,9 +198,12 @@ def saveConfig():
         name = chooseToSaveConfig()
         if name in ['', '\n']:
             return
-    l = getValues()
+    if not loadFromTextInput():
+        return
+    config = ConfigParser()
+    config['Values'] = values
     with open(name, 'w') as f:
-        f.write('\n'.join(l))
+        config.write(f)
 
 
 def chooseGraph():
@@ -206,13 +242,13 @@ quitButton.grid(row=8, column=2, sticky='e', padx=10)
 # ALFA
 frameAlfa = LabelFrame(frame, text='Wartość parametru (alfa)')
 frameAlfa.grid(row=0, column=0, padx=20, pady=20)
-entryAlfa = Entry(frameAlfa, width=20, borderwidth=5,)
+entryAlfa = Entry(frameAlfa, width=20, borderwidth=5)
 entryAlfa.pack(padx=5)
 
 # EPSILON
 frameEpsilon = LabelFrame(frame, text='Wartość parametru epsilon')
 frameEpsilon.grid(row=1, column=0, padx=20, pady=10)
-entryEpsilon = Entry(frameEpsilon, width=20, borderwidth=5,)
+entryEpsilon = Entry(frameEpsilon, width=20, borderwidth=5)
 entryEpsilon.pack()
 
 # C/T
@@ -226,7 +262,7 @@ entryC.pack()
 
 frameT = LabelFrame(frameCT, text='Wartość parametru t')
 frameT.grid(row=2, column=0, padx=12, pady=13)
-entryT = Entry(frameT, width=18, borderwidth=5,)
+entryT = Entry(frameT, width=18, borderwidth=5)
 entryT.pack()
 
 # Operator Sliders
@@ -463,14 +499,24 @@ sBarChooseGraph.config(command=textChooseGraph.xview)
 
 # Elem Lst
 
-AllElements = (entryAlfa, entryC, entryT, entryEpsilon, sliderBeta, sliderGamma,
-               sliderDelta, sliderChCost, sliderChTrans, sliderChU, sliderProcCheapTask,
-               sliderProcFastTask, sliderProcTK, sliderProcAsBef, sliderProcUse)
+AllElements = {
+    'alpha': entryAlfa,
+    'epsilon': entryEpsilon,
+    'c': entryC,
+    't': entryT,
+    'reproduction': sliderBeta,
+    'crossbread': sliderGamma,
+    'mutate': sliderDelta,
+    'k1': sliderChCost,
+    'k2': sliderChTrans,
+    'k3': sliderChU,
+    'o1': sliderProcCheapTask,
+    'o2': sliderProcFastTask,
+    'o3': sliderProcTK,
+    'o4': sliderProcAsBef,
+    'o5': sliderProcUse,
+}
 
-AllElementsToGet = (entryAlfa, entryC, entryT, entryEpsilon, labelBeta,
-                    labelGamma, labelDelta, labelChCost, labelChTrans, labelChU,
-                    labelProcCheapTask, labelProcFastTask, labelProcTK, labelProcAsBef,
-                    labelProcUse)
 
 if __name__ == "__main__":
     resetToDefault()
