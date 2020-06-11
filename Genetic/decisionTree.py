@@ -11,6 +11,7 @@ from Graph import Graph, Node as GNode
 from TaskData import TaskData, Process
 from TaskData.process import ProcessInstance
 
+from Genetic import GeneInfo
 
 @dataclass(init=False, order=True)
 class TaskImplementation:
@@ -112,9 +113,12 @@ class DecisionTree:
             self,
             embryo: Embryo,
             nodes: List[Node],
-            procInstances: List[ProcessInstance]
+            procInstances: List[ProcessInstance],
+            taskdata: TaskData,
+            genes: List[List[Callable]]
     ):
         self.embryo = embryo
+        self.genes=genes
         self.nodes = nodes
         self.procInstances = procInstances
 
@@ -123,11 +127,27 @@ class DecisionTree:
         return DecisionTree(
             embryo,
             embryo.children[0].collectChildren(),
-            deepcopy(self.procInstances)
+            deepcopy(self.procInstances),
+            self.genes.copy()
         )
 
     def execGenes(self):
-        pass
+        #TODO taskdata in global or in self
+        info=GeneInfo( TASKDATA, tree.procInstances )
+        queue=[]
+        queue.append(self.embryo)
+        while len(queue)>0:
+            node=queue.pop(0)
+            for child in node.children:
+                queue.append(child)
+                self.genes[ child.label ][0](child,info,self.procInstances)
+                self.genes[ child.label ][1](child,info,self.procInstances)
+
+
+        
+
+
+
 
     def render(self):
         graph = Digraph('decisionTree')
@@ -179,7 +199,7 @@ class DecisionTree:
         _embryo, procInst = cls.createEmbryo(task.graph, task.proc)
         embryo = Embryo(_embryo)
         numOfNodes = np.random.randint(2, len(task.graph) - 1)
-
+        
         nodes = []
         parents = [embryo]
 
@@ -193,7 +213,8 @@ class DecisionTree:
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        return cls(embryo, nodes, procInst)
+        genes = Genes.createRandomGenes(numOfNodes-1)
+        return cls(embryo, nodes, procInst,genes)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         def removeNodes(allNodes, toRemove):

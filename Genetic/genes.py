@@ -202,7 +202,14 @@ class Genes:
                 embryo.processData[ imp.task.label ].proc.channels[ chan_to_use ] = True
                 count[chan_to_use]+=1
 
-            
+    @staticmethod
+    def createRandomGenes(size: int):
+        #TODO probabilities from CONFIG
+        return list(zip(
+            np.random.choice( [ Genes.O1,Genes.O2,Genes.O3,Genes.O4,Genes.O5 ],p=CONFIG.process_probability,size=size),
+            np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=CONFIG.channel_probability,size=size)))
+
+
 
 
 
