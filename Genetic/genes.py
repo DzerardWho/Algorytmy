@@ -10,6 +10,8 @@ sys.path.append(".")
 
 from TaskData import Process, TaskData
 
+import Configuration
+
 """
 Dla jednostek obliczeniowych:
 
@@ -200,8 +202,8 @@ class Genes:
     def createRandomGenes(size: int):
         #TODO probabilities from CONFIG
         return list(zip(
-            np.random.choice( [ Genes.O1,Genes.O2,Genes.O3,Genes.O4,Genes.O5 ],p=CONFIG.process_probability,size=size),
-            np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=CONFIG.channel_probability,size=size)))
+            np.random.choice( [ Genes.O1,Genes.O2,Genes.O3,Genes.O4,Genes.O5 ],p=genesProbability[0],size=size),
+            np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=genesProbability[1],size=size)))
 
 
 class GeneInfo:
