@@ -244,6 +244,32 @@ class DecisionTree:
 
         return self, other
 
+    def get_fit_value(self, c: int, t: int) -> float:
+        _cost = 0
+        _time = 0
+
+    #     add costs of all used universal proc resources
+        for p in self.procInstances:
+            if p[0].proc.universal:
+                _cost += len(p) * p.proc.cost
+    # add costs of execution tasks on proc resources
+        for i, task in enumerate(self.embryo.processData):
+            _cost += task.proc.proc.costs[i]
+
+    # add costs of joining procs to comms
+        for p in self.procInstances:
+            for inst in p:
+                _cost += inst.comm_join_cost
+
+        # # times
+        # for i, task in enumerate(self.embryo.processData):
+        #     _time += task.proc.proc.times[i]
+        #
+
+
+        _fit = c * _cost + t * _time
+        return _fit
+
     def __xor__(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         return self.crossbread(other)
 
