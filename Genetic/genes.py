@@ -5,19 +5,16 @@ from typing import Any, Callable, Dict, Iterable, List, Type
 
 import numpy as np
 
-from Graph import Graph
-from Graph import Node as GNode
 from TaskData import Process, TaskData
 from TaskData.process import ProcessInstance
 
-from .decisionTree import TaskImplementation
-
+#from .decisionTree import TaskImplementation
 
 TaskImplementationID = Type[int]
 
 from TaskData import Process, TaskData
 
-import Configuration
+import configuration
 
 """
 Dla jednostek obliczeniowych:

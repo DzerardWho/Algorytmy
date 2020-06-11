@@ -119,8 +119,9 @@ class DecisionTree:
     ):
         self.embryo = embryo
         
-        for node in nodes:
-            node.genes=genes[node.label]
+        if genes:
+            for node in nodes:
+                node.genes=genes[node.label]
 
         self.nodes = nodes
         self.procInstances = procInstances
@@ -136,7 +137,7 @@ class DecisionTree:
 
     def execGenes(self):
         #TODO taskdata in global or in self
-        info=GeneInfo( TASKDATA, tree.procInstances )
+        info=GeneInfo( taskData, tree.procInstances )
         queue=[]
         queue.append(self.embryo)
         while len(queue)>0:

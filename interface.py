@@ -115,6 +115,17 @@ def run():
     generations = genetic.compute()
     best = genetic.returnBest()
 
+    with open('results.txt','w','utf-8') as file:
+      embryo = best.embryo
+      for imp in embryo.processData:
+        file.write(f'{imp.task} | P{imp.proc.proc.idx}')
+
+
+
+
+
+
+
 
 def sliderOper(v):
     beta = float(sliderBeta.get())
