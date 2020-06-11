@@ -82,7 +82,7 @@ class ProcessInstance:
     def __init__(self, proc: Process):
         self.proc = proc
         self.numOfAllocations = 0
-        self.channels: List[str] = []
+        self.channels: Dict[Channel,bool] = {}
 
     def allocate(self) -> ProcessInstance:
         if not self.proc.universal and self.numOfAllocations != 0:

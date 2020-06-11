@@ -15,7 +15,7 @@ from TaskData.process import ProcessInstance
 @dataclass(init=False, order=True)
 class TaskImplementation:
     task: GNode = field(compare=False)
-    proc: Process = field(compare=False)
+    proc: ProcessInstance = field(compare=False)
     weight: int
 
     def __init__(self, task: GNode, proc: ProcessInstance):

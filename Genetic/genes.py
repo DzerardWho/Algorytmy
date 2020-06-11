@@ -143,7 +143,21 @@ class Genes:
 
     @staticmethod
     def K1(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
-        pass
+        return
+        for id in data:
+            imp = embryo.processData[ id ]
+            for e in imp.task.edges:
+                costs={ chan: for chan in info.channels }
+        """
+            PROBLEMY:
+            zasób może być podłączony do kilku kanalów
+            więc najmniejszy koszt będzie dla kanałów już podłączonych
+            tylko teraz pytanie jeśli tańszy będzie kanał niepodłączony
+            to oczywiste jest że go podłączam ale czy
+            teraz powinienem odpowiednio odłączyć nie używane?
+        """
+
+
         
                 
 
