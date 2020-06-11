@@ -118,7 +118,10 @@ class DecisionTree:
             genes: List[List[Callable]]
     ):
         self.embryo = embryo
-        self.genes=genes
+        
+        for node in nodes:
+            node.genes=genes[node.label]
+
         self.nodes = nodes
         self.procInstances = procInstances
 
@@ -140,8 +143,8 @@ class DecisionTree:
             node=queue.pop(0)
             for child in node.children:
                 queue.append(child)
-                self.genes[ child.label ][0](child,info,self.procInstances)
-                self.genes[ child.label ][1](child,info,self.procInstances)
+                child.genes[0](child,GeneInfo,self.procInstances)
+                child.genes[1](child,GeneInfo,self.procInstances)
 
 
         
@@ -245,7 +248,11 @@ class DecisionTree:
         return self.crossbread(other)
 
     def mutate(self):
-        pass
+        node = np.random.choice(self.nodes)
+        node.genes = Genes.createRandomGenes(1)
+        return self
+
+        
 
     def __invert__(self) -> DecisionTree:
         return self.mutate()
