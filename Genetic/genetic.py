@@ -28,7 +28,6 @@ class Genetic:
             # I hope this Nones are temporary?
             fitFunction: Callable[
                 [np.ndarray, Dict[str, Any]], np.ndarray] = None,
-            genes: List[List[Callable[np.ndarray], np.ndarray]] = None,
             genesProbability: List[List[int]] = None,
             constants: Dict[str, Any] = None,
             populationSize: int = 1000,
@@ -77,7 +76,6 @@ class Genetic:
         )
 
         self.genesProbability = genesProbability
-        self.genes = genes
 
         self.population: Iterable[DecisionTree] = None
         self.fittness = np.empty(self.populationSize)
