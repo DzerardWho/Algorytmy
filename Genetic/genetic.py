@@ -1,20 +1,14 @@
 from __future__ import annotations
-<<<<<<< HEAD
 import numpy as np
 from typing import Any, Callable, Dict, List, Iterable
-=======
-import sys
-
-sys.path.append(".")
->>>>>>> Kitek
 from copy import deepcopy
 import sys
 
 sys.path.append(".")
 
-from TaskData import TaskData, Process
-from Graph import Graph
 from Genetic.decisionTree import DecisionTree
+from Graph import Graph
+from TaskData import TaskData, Process
 
 
 # TODO: input from user
@@ -175,24 +169,6 @@ class Genetic:
         # This should let us to iterate over array on Numpy/C++ side
         return parents[:, 0] ^ parents[:, 1]
 
-    def crossbread(self, parents):
-        # TODO: rewrite function after implementation of decision tree
-        # In decision tree implement '^' operator for crossbread
-        # This should let us to iterate over array on Numpy/C++ side
-
-        # parent1, parent2 = parents
-        # splitSpot = np.random.choice(np.arange(0, parent1.shape[0]))
-        # childNodes = self.graph[splitSpot].collectChildrenLabels()
-        # child1, child2 = parent1.copy(), parent2.copy()
-
-        # child1[childNodes] = parent2[childNodes]
-        # child2[childNodes] = parent1[childNodes]
-
-        return parents
-
-    # def reproduce(self, genotype: np.ndarray):
-    #     return genotype
-
     def __sortFittness(self):
         positions = np.argsort(self.fittness)
 
@@ -231,7 +207,6 @@ class Genetic:
 
 
 if __name__ == '__main__':
-    from Genetic.decisionTree import DecisionTree
     _td = TaskData.loadFromFile(r"Grafy\Z_wagami\GRAPH.20")
     # print(_td.proc)
     # print(_td.channels)
