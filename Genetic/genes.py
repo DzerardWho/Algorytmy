@@ -165,8 +165,10 @@ class Genes:
                         minCost=cost
                         new_chan=chan
                 embryo.edgesData[e] = new_chan
-                parent_proc.channels[ new_chan ] = True
-                child_proc.channels[ new_chan ] = True
+                embryo.processData[ imp.task.label ].proc.channels[ new_chan ] = True
+                embryo.processData[ e.child.label ].proc.channels[ new_chan ] = True
+                
+                
 
     @staticmethod
     def K2(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
@@ -176,14 +178,19 @@ class Genes:
                 s,t = e.parent,e.child
                 parent_proc = embryo.processData[ s.label ].proc.proc.idx
                 child_proc = embryo.processData[ t.label ].proc.proc.idx
-                chan_max = max([chan for chan in info.chans if chan.availableProcs[parent_proc] and chan.availableProcs[child_proc]],key=lambda c:c.rate)
+                chan_max = max([
+                    chan for chan in info.chans
+                    if chan.availableProcs[parent_proc] 
+                    and chan.availableProcs[child_proc]
+                ],key=lambda c:c.rate)
                 embryo.edgesData[e] = chan_max
+                embryo.processData[ imp.task.label ].proc.channels[ chan_max ] = True
+                embryo.processData[ e.child.label ].proc.channels[ chan_max ] = True
 
 
     @staticmethod
     def K3(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
         count={ chan:0 for chan in info.chans }
-        #proc_id = min(proc_count.items(), key=lambda x: x[1])[0]
         for edge,chan in embryo.edgesData.items():
             count[ chan ]+=1
         for id in data:
@@ -191,6 +198,8 @@ class Genes:
             for e in imp.task.edges:
                 chan_to_use=min( count.items(),key=lambda x:x[1] )[0]
                 embryo.edgesData[e]=chan_to_use
+                embryo.processData[ e.child.label ].proc.channels[ chan_to_use ] = True
+                embryo.processData[ imp.task.label ].proc.channels[ chan_to_use ] = True
                 count[chan_to_use]+=1
 
             
