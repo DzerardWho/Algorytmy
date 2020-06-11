@@ -130,10 +130,29 @@ class Genes:
                 procs.instances[proc_id]
             )
             
+    """
+    Dla zasobów komunikacyjnych:
+        1. Najmniejszy wzrost kosztu – wybierany jest kanał komunikacyjny który powoduje najmniejszy
+        wzrost kosztu całego układu
+
+        2. Najszybsza transmisja (największe b) – wybierany jest kanał komunikacyjny posiadający
+        największą przepustowość
+
+        3. Najrzadziej używany
+    """
 
     @staticmethod
-    def K1():
-        pass
+    def K1(data: List[TaskImplementationID] ,procs :ProcsInfo ,embryo: Embryo):
+
+        for id in data:
+            imp = embryo.processData[ id ]
+            for e in imp.task.edges:
+                if e in embryo.edgesData:
+                    pass
+                
+
+        
+
 
     @staticmethod
     def K2():
@@ -157,10 +176,15 @@ if __name__ == "__main__":
     from Genetic.decisionTree import DecisionTree
     _td = TaskData.loadFromFile(r"Grafy\Z_wagami\GRAPH.20")
 
+
     tree = DecisionTree.createRandomTree(_td)
+    
+
 
     #Genes.O1(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
     #Genes.O2(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
     #Genes.O3(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
     #Genes.O4(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
-    Genes.O5(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    #Genes.O5(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+
+    Genes.K1(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)

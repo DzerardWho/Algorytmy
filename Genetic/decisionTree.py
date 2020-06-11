@@ -33,11 +33,13 @@ class Embryo:
         self,
         processData: Iterable[TaskImplementation],
         data: Iterable[int] = None,
-        children: Iterable[Node] = None
+        children: Iterable[Node] = None,
+        edgesData: Dict[Edge,Channel] = None,
     ):
         self.processData = processData
         self.data = data or np.array([i.task.label for i in np.sort(processData)])
         self.children = children or []
+        self.edgesData = edgesData or {}
         self.label = 'embryo'
         self.interIdx = str(id(self))
 
