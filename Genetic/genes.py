@@ -1,19 +1,16 @@
 from __future__ import annotations
-from TaskData.process import ProcessInstance
-from TaskData import Process, TaskData
 
-sys.path.append(".")
-
-from Graph import Node as GNode
-from Graph import Graph
-from decisionTree import TaskImplementation
-
-import sys
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Iterable, Type
+from typing import Any, Callable, Dict, Iterable, List, Type
 
 import numpy as np
 
+from Graph import Graph
+from Graph import Node as GNode
+from TaskData import Process, TaskData
+from TaskData.process import ProcessInstance
+
+from .decisionTree import TaskImplementation
 
 
 TaskImplementationID = Type[int]

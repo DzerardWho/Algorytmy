@@ -8,8 +8,8 @@ from copy import deepcopy
 import numpy as np
 
 from Graph import Graph, Node as GNode
-from TaskData import TaskData, Process
-from TaskData.process import ProcessInstance
+from TaskData import Process, ProcessInstance
+import configuration
 
 
 @dataclass(init=False, order=True)
@@ -175,7 +175,8 @@ class DecisionTree:
         return out, procInstances
 
     @classmethod
-    def createRandomTree(cls, task: TaskData) -> DecisionTree:
+    def createRandomTree(cls) -> DecisionTree:
+        task = configuration.taskData
         _embryo, procInst = cls.createEmbryo(task.graph, task.proc)
         embryo = Embryo(_embryo)
         numOfNodes = np.random.randint(2, len(task.graph) - 1)
@@ -228,3 +229,6 @@ class DecisionTree:
 
     def __invert__(self) -> DecisionTree:
         return self.mutate()
+
+    def __neg__(self):
+        self.execGenes()

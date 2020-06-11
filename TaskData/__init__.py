@@ -6,7 +6,7 @@ from pathlib import Path
 
 from Graph import Graph
 from TaskData.channel import Channel
-from TaskData.process import Process
+from TaskData.process import Process, ProcessInstance
 
 NUM_OF_HEADERS = 5
 
@@ -45,4 +45,4 @@ class TaskData:
         return cls(path.read_text('utf-8'))
 
 
-__all__ = [TaskData, Channel, Process]
+__all__ = [TaskData, Channel, Process, ProcessInstance]
