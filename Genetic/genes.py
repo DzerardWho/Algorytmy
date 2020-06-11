@@ -46,19 +46,18 @@ class Genes:
         return len(instances)+1 < p.limit
 
     @staticmethod
-    def allocateProcInstance(p: Process, instances: Iterable[ProcessInstance]):
+    def allocateProcInstance(p: Process, proc_instances: Iterable[ProcessInstance]):
         t = None
-        if len(instances[p.idx]) == 0:
+        if len(proc_instances) < 1:
             t = ProcessInstance(p)
         else:
-            t = instances[p.idx][0]
+            t = proc_instances[0]
         t = t.allocate()
-        instances[p.idx].append(t)
+        proc_instances.append(t)
         return t
 
     @staticmethod
-    def O1(data: List[TaskImplementationID], procs: ProcInfo, embryo):
-
+    def O1(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
         for i, id in enumerate(data):
             imp = embryo.processData[id]
 
@@ -71,9 +70,9 @@ class Genes:
             embryo.processData[id].proc = Genes.allocateProcInstance(
                 procs.defs[proc_id], procs.instances)
 
-    @staticmethod
-    def O2(data: List[TaskImplementationID], procs: ProcInfo, embryo):
 
+    @staticmethod
+    def O2(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
         for i, id in enumerate(data):
             imp = embryo.processData[id]
             proc_id = min([
@@ -86,7 +85,7 @@ class Genes:
                 procs.defs[proc_id], procs.instances)
 
     @staticmethod
-    def O3(data: List[TaskImplementationID], procs: ProcInfo, embryo):
+    def O3(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
 
         for i, id in enumerate(data):
             imp = embryo.processData[id]
@@ -100,7 +99,7 @@ class Genes:
                 procs.defs[proc_id], procs.instances)
 
     @staticmethod
-    def O4(data: List[TaskImplementationID], procs: ProcInfo, embryo):
+    def O4(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
 
         for id in data:
             node = embryo.processData[id]
@@ -119,17 +118,30 @@ class Genes:
                     procs.defs[proc_id], procs.instances)
 
     @staticmethod
-    def O5(data: List[TaskImplementationID], procs: ProcInfo, embryo):
-
+    def O5(data: List[TaskImplementationID], procs: ProcInfo, embryo: Embryo):
         for i, id in enumerate(data):
             proc_id = min([
                 (proc_id, len(procs.instances[proc_id]))
                 for proc_id, proc in enumerate(procs.defs)
                 if Genes.isAvailable(proc, procs.instances[proc_id])
             ], key=lambda v: v[1])[0]
-
             embryo.processData[id].proc = Genes.allocateProcInstance(
-                procs.defs[proc_id], procs.instances)
+                procs.defs[proc_id], 
+                procs.instances[proc_id]
+            )
+            
+
+    @staticmethod
+    def K1():
+        pass
+
+    @staticmethod
+    def K2():
+        pass
+
+    @staticmethod
+    def K3():
+        pass
 
 
 class ProcsInfo:
@@ -146,25 +158,9 @@ if __name__ == "__main__":
     _td = TaskData.loadFromFile(r"Grafy\Z_wagami\GRAPH.20")
 
     tree = DecisionTree.createRandomTree(_td)
-    # print(tree.procInstancess)
-    # Genes.O2(tree.nodes[1].data,_td.proc,,tree.embryo)
 
-    # print(tree.nodes[1].data)
-
-    # print(*tree.embryo.processData,sep='\n')
-    Genes.O1(tree.nodes[1].data, ProcsInfo(
-        _td.proc, tree.procInstancess), tree.embryo)
-    Genes.O2(tree.nodes[1].data, ProcsInfo(
-        _td.proc, tree.procInstancess), tree.embryo)
-    Genes.O3(tree.nodes[1].data, ProcsInfo(
-        _td.proc, tree.procInstancess), tree.embryo)
-    Genes.O4(tree.nodes[1].data, ProcsInfo(
-        _td.proc, tree.procInstancess), tree.embryo)
-    Genes.O5(tree.nodes[1].data, ProcsInfo(
-        _td.proc, tree.procInstancess), tree.embryo)
-
-    # print('------')
-    # print(*tree.embryo.processData,sep='\n')
-
-    # print('---------')
-    # print(tree.nodes[1].data)
+    #Genes.O1(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    #Genes.O2(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    #Genes.O3(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    #Genes.O4(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)
+    Genes.O5(tree.nodes[1].data, ProcsInfo(_td.proc, tree.procInstances), tree.embryo)

@@ -35,8 +35,8 @@ class Embryo:
         data: Iterable[int] = None,
         children: Iterable[Node] = None
     ):
-        self.processData = data
-        self.data = data or np.array([i.task.label for i in np.sort(data)])
+        self.processData = processData
+        self.data = data or np.array([i.task.label for i in np.sort(processData)])
         self.children = children or []
         self.label = 'embryo'
         self.interIdx = str(id(self))
