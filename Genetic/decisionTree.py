@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Iterable, List
+from typing import Iterable, List, Dict
 from dataclasses import dataclass, field
 from graphviz import Digraph
 from copy import deepcopy
@@ -34,10 +34,11 @@ class Embryo:
         processData: Iterable[TaskImplementation],
         data: Iterable[int] = None,
         children: Iterable[Node] = None,
-        edgesData: Dict[Edge,Channel] = None,
+        edgesData: Dict[Edge, Channel] = None,
     ):
         self.processData = processData
-        self.data = data or np.array([i.task.label for i in np.sort(processData)])
+        self.data = data or np.array(
+            [i.task.label for i in np.sort(processData)])
         self.children = children or []
         self.edgesData = edgesData or {}
         self.label = 'embryo'

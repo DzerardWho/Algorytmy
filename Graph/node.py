@@ -9,9 +9,10 @@ class Edge:
     parent: Node = field(compare=False)
     child: Node = field(compare=False)
     weight: int
-    
+
     def __hash__(self):
-        return hash( f'{self.parent}{self.child}' )
+        return hash(f'{self.parent}{self.child}')
+
 
 class Node:
     def __init__(self, label: int):
