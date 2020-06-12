@@ -1,3 +1,5 @@
+"""Summary
+"""
 from __future__ import annotations
 
 from typing import Iterable, List, Dict
@@ -15,11 +17,26 @@ from Genetic.genes import GeneInfo,Genes
 
 @dataclass(init=False, order=True)
 class TaskImplementation:
+
+    """Implementacja zadania.
+    
+    Attributes:
+        proc (TYPE): Instancja zasobu
+        task (TYPE): Węzeł drzewa decyzyjnego
+        weight (TYPE): waga
+    """
+    
     task: GNode = field(compare=False)
     proc: ProcessInstance = field(compare=False)
     weight: int
 
     def __init__(self, task: GNode, proc: ProcessInstance):
+        """Summary
+        
+        Args:
+            task (GNode): Węzeł drzewa decyzyjnego
+            proc (ProcessInstance): Instancja procesu aktualnie przypisana do realizacji zadania
+        """
         self.task = task
         self.proc = proc
         time, cost = proc.proc[task.label]
@@ -30,6 +47,16 @@ class TaskImplementation:
 
 
 class Embryo:
+
+    """Embrion
+    
+    Attributes:
+        data (TYPE): dane
+        edgesData (TYPE): Dane o krawędziach
+        label (str): Etykieta
+        processData (TYPE): Dane o zasobach
+    """
+    
     def __init__(
         self,
         processData: Iterable[TaskImplementation],
@@ -63,12 +90,28 @@ class Embryo:
 
 
 class Node:
+
+    """Węzeł drzewa decyzyjnego
+    
+    Attributes:
+        children (list): Dzieci
+        genes (List[Callable]): Funkcje Genów
+        label (TYPE): Etykieta
+        parent (TYPE): Rodzic
+    """
+    
     def __init__(
             self,
             embryo: Embryo,
             data: Iterable[int],
             label: str = ''
     ):
+        """
+        Args:
+            embryo (Embryo): Embrion
+            data (Iterable[int]): dane
+            label (str, optional): Etykieta
+        """
         self.embryo = embryo
         self.data = data
         self.children = []
@@ -77,6 +120,11 @@ class Node:
         self.interIdx = str(id(self))
 
     def addParent(self, parent: Node):
+        """Dodaje rodzica.
+        
+        Args:
+            parent (Node): Węzeł rodzica
+        """
         self.parent = parent
         parent.children.append(self)
 
@@ -97,6 +145,11 @@ class Node:
         return out
 
     def collectChildren(self) -> List[Node]:
+        """Summary
+        
+        Returns:
+            List[Node]: Description
+        """
         out = [self]
         for i in self.children:
             out.extend(i.collectChildren())
@@ -109,6 +162,15 @@ class Node:
 
 
 class DecisionTree:
+
+    """Drzewo decyzyjne.
+    
+    Attributes:
+        embryo (TYPE): Embrion do modyfikacji
+        nodes (TYPE): Węzły drzewa
+        procInstances (TYPE): Instancje zasobów
+    """
+    
     def __init__(
             self,
             embryo: Embryo,
@@ -116,6 +178,14 @@ class DecisionTree:
             procInstances: List[ProcessInstance],
             genes: List[List[Callable]]
     ):
+        """Summary
+        
+        Args:
+            embryo (Embryo): Description
+            nodes (List[Node]): Description
+            procInstances (List[ProcessInstance]): Description
+            genes (List[List[Callable]]): Description
+        """
         self.embryo = embryo
         if genes:
             for i,node in enumerate(nodes):
@@ -134,7 +204,8 @@ class DecisionTree:
         )
 
     def execGenes(self):
-        #TODO taskdata in global or in self
+        """Przechodzi drzewo w szerz i wykonuje kolejne funkcje genów.
+        """
         info=GeneInfo( configuration.taskData, self.procInstances )
         queue=[]
         queue.append(self.embryo)
@@ -161,6 +232,12 @@ class DecisionTree:
             procs: Iterable[Process],
             procInstances: Iterable[Iterable[ProcessInstance]]
     ):
+        """Losowo przypisuje zasoby zadaniom.
+        
+        Args:
+            procs (Iterable[Process]): Definicje zasobów
+            procInstances (Iterable[Iterable[ProcessInstance]]):  Instancje zasobów
+        """
         for i in np.random.permutation(procs):
             n = len(procInstances[i.idx])
             if n >= i.limit:
@@ -184,6 +261,12 @@ class DecisionTree:
     def createEmbryo(
             tasks: Graph, procs: Iterable[Process]
     ) -> Iterable[TaskImplementation, Iterable[Iterable[ProcessInstance]]]:
+        """Tworzy emrion dla podanej struktury grafu zadań.
+        
+        Args:
+            tasks (Graph): Graf zadań.
+            procs (Iterable[Process]): Definicje zasobów
+        """
         procInstances = [[] for i in range(len(procs))]
         out = np.array(
             [
@@ -198,6 +281,11 @@ class DecisionTree:
 
     @classmethod
     def createRandomTree(cls) -> DecisionTree:
+        """Tworzy losowe drzewo.
+        
+        Returns:
+            DecisionTree
+        """
         task = configuration.taskData
         _embryo, procInst = cls.createEmbryo(task.graph, task.proc)
         embryo = Embryo(_embryo)
@@ -220,6 +308,14 @@ class DecisionTree:
         return cls(embryo, nodes, procInst,genes)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
+        """Krzyżuje drzewa decyzyjne
+        
+        Args:
+            other (DecisionTree): Drzewo z którym skrzyżować.
+        
+        Returns:
+            DecisionTree, DecisionTree: Zwraca z modyfikowane drzewa
+        """
         def removeNodes(allNodes, toRemove):
             for i in toRemove:
                 allNodes.pop(i, None)
@@ -245,6 +341,12 @@ class DecisionTree:
         return self, other
 
     def get_fit_value(self, c: int, t: int) -> float:
+        """Oblicza funkcje dopasowania.
+        
+        Args:
+            c (int)
+            t (int)
+        """
         _cost = 0
         _time = 0
 
@@ -271,9 +373,15 @@ class DecisionTree:
         return _fit
 
     def __xor__(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
+        print('xor')
         return self.crossbread(other)
 
     def mutate(self):
+        """Mutuje drzewo
+        
+        Returns:
+            DecisionTree: zwraca zmutowane drzewo
+        """
         node = np.random.choice(self.nodes)
         node.genes = Genes.createRandomGenes(1)
         return self
@@ -281,10 +389,12 @@ class DecisionTree:
         
 
     def __invert__(self) -> DecisionTree:
+        print('pos')
         return self.mutate()
 
     def __neg__(self):
         self.execGenes()
-        
+
     def __pos__(self) -> float:
+        print('pos')
         return self.get_fit_value()

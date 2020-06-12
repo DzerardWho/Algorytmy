@@ -1,3 +1,5 @@
+"""Summary
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -8,6 +10,16 @@ import numpy as np
 
 @dataclass(init=False)
 class Channel:
+
+    """Definicja kanału kominikacyjnego.
+    
+    Attributes:
+        availableProcs (TYPE): zasoby dostępne dla tego kanału komunikacji
+        cost (TYPE): koszt dołączenia
+        name (TYPE): nazwa
+        rate (TYPE): przepustowość
+    """
+    
     name: str
     cost: int
     rate: int
