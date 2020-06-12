@@ -343,6 +343,8 @@ class DecisionTree:
             c (int)
             t (int)
         """
+        # TODO extract capcity for channel
+        capacity = 1
         _cost = 0
         _time = 0
 
@@ -366,12 +368,13 @@ class DecisionTree:
         self.embryo.processData[0].proc.time_remaining = self.embryo.processData[0].proc.proc.times[0]
         finished_tasks = []
         while len(finished_tasks) != len(self.tasks_graph.nodes):
-            for a in available_tasks:
+            for a, _parent in available_tasks:
                 # TODO CPM
                 if not self.embryo.processData[a.label].proc.time_remaining:
                     ongoing_tasks.append(a)
                     _t = self.embryo.processData[a.label].proc.proc.times[a.label]
-
+                    if self.embryo.processData[a.label].proc != self.embryo.processData[o.label].proc:
+                        _t += np.ceil(a.parents[o] / capacity)
                     self.embryo.processData[a.label].proc.time_remaining = _t
 
             available_tasks = [
@@ -382,13 +385,11 @@ class DecisionTree:
                 self.embryo.processData[o.label].proc.time_remaining -= 1
                 if self.embryo.processData[o.label].proc.time_remaining < 1:
                     finished_tasks.append(o)
-                    available_tasks.extend(list(o.children.keys()))
-                    available_tasks = [
-                        a for a in available_tasks if a not in finished_tasks]
+                    available_tasks.extend([(t, o) for t in list(o.children.keys())])
+                    available_tasks = [a for a in available_tasks if a not in finished_tasks]
                     available_tasks = set(available_tasks)
 
-            ongoing_tasks = [
-                o for o in ongoing_tasks if o not in finished_tasks]
+                    ongoing_tasks = [o for o in ongoing_tasks if o not in finished_tasks]
 
         _fit = c * _cost + t * _time
         return _fit
