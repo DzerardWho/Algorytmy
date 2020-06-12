@@ -2,7 +2,7 @@
 """
 from __future__ import annotations
 
-from typing import Iterable, List, Dict
+from typing import Iterable, List, Dict, Callable
 from dataclasses import dataclass, field
 from graphviz import Digraph
 from copy import deepcopy
@@ -15,24 +15,25 @@ import configuration
 
 from Genetic.genes import GeneInfo, Genes
 
+
 @dataclass(init=False, order=True)
 class TaskImplementation:
 
     """Implementacja zadania.
-    
+
     Attributes:
         proc (TYPE): Instancja zasobu
         task (TYPE): Węzeł drzewa decyzyjnego
         weight (TYPE): waga
     """
-    
+
     task: GNode = field(compare=False)
     proc: ProcessInstance = field(compare=False)
     weight: int
 
     def __init__(self, task: GNode, proc: ProcessInstance):
         """Summary
-        
+
         Args:
             task (GNode): Węzeł drzewa decyzyjnego
             proc (ProcessInstance): Instancja procesu aktualnie przypisana do realizacji zadania
@@ -49,14 +50,14 @@ class TaskImplementation:
 class Embryo:
 
     """Embrion
-    
+
     Attributes:
         data (TYPE): dane
         edgesData (TYPE): Dane o krawędziach
         label (str): Etykieta
         processData (TYPE): Dane o zasobach
     """
-    
+
     def __init__(
         self,
         processData: Iterable[TaskImplementation],
@@ -92,14 +93,14 @@ class Embryo:
 class Node:
 
     """Węzeł drzewa decyzyjnego
-    
+
     Attributes:
         children (list): Dzieci
         genes (List[Callable]): Funkcje Genów
         label (TYPE): Etykieta
         parent (TYPE): Rodzic
     """
-    
+
     def __init__(
             self,
             embryo: Embryo,
@@ -121,7 +122,7 @@ class Node:
 
     def addParent(self, parent: Node):
         """Dodaje rodzica.
-        
+
         Args:
             parent (Node): Węzeł rodzica
         """
@@ -146,7 +147,7 @@ class Node:
 
     def collectChildren(self) -> List[Node]:
         """Summary
-        
+
         Returns:
             List[Node]: Description
         """
@@ -164,13 +165,13 @@ class Node:
 class DecisionTree:
 
     """Drzewo decyzyjne.
-    
+
     Attributes:
         embryo (TYPE): Embrion do modyfikacji
         nodes (TYPE): Węzły drzewa
         procInstances (TYPE): Instancje zasobów
     """
-    
+
     def __init__(
             self,
             embryo: Embryo,
@@ -179,7 +180,7 @@ class DecisionTree:
             genes: List[List[Callable]]
     ):
         """Summary
-        
+
         Args:
             embryo (Embryo): Description
             nodes (List[Node]): Description
@@ -188,11 +189,12 @@ class DecisionTree:
         """
         self.embryo = embryo
         if genes:
-            for i,node in enumerate(nodes):
-                node.genes=genes[ i ]
+            for i, node in enumerate(nodes):
+                node.genes = genes[i]
 
         self.nodes = nodes
         self.procInstances = procInstances
+        self.tasks_graph = configuration.taskData.graph
 
     def __deepcopy__(self, memo):
         embryo = deepcopy(self.embryo, memo)
@@ -206,21 +208,15 @@ class DecisionTree:
     def execGenes(self):
         """Przechodzi drzewo w szerz i wykonuje kolejne funkcje genów.
         """
-        info=GeneInfo( configuration.taskData, self.procInstances )
-        queue=[]
+        info = GeneInfo(configuration.taskData, self.procInstances)
+        queue = []
         queue.append(self.embryo)
-        while len(queue)>0:
-            node=queue.pop(0)
+        while len(queue) > 0:
+            node = queue.pop(0)
             for child in node.children:
                 queue.append(child)
-                child.genes[0](child.data,info,self.embryo)
-                child.genes[1](child.data,info,self.embryo)
-
-
-        
-
-
-
+                child.genes[0](child.data, info, self.embryo)
+                child.genes[1](child.data, info, self.embryo)
 
     def render(self):
         graph = Digraph('decisionTree')
@@ -233,7 +229,7 @@ class DecisionTree:
             procInstances: Iterable[Iterable[ProcessInstance]]
     ):
         """Losowo przypisuje zasoby zadaniom.
-        
+
         Args:
             procs (Iterable[Process]): Definicje zasobów
             procInstances (Iterable[Iterable[ProcessInstance]]):  Instancje zasobów
@@ -262,7 +258,7 @@ class DecisionTree:
             tasks: Graph, procs: Iterable[Process]
     ) -> Iterable[TaskImplementation, Iterable[Iterable[ProcessInstance]]]:
         """Tworzy emrion dla podanej struktury grafu zadań.
-        
+
         Args:
             tasks (Graph): Graf zadań.
             procs (Iterable[Process]): Definicje zasobów
@@ -282,7 +278,7 @@ class DecisionTree:
     @classmethod
     def createRandomTree(cls) -> DecisionTree:
         """Tworzy losowe drzewo.
-        
+
         Returns:
             DecisionTree
         """
@@ -290,7 +286,7 @@ class DecisionTree:
         _embryo, procInst = cls.createEmbryo(task.graph, task.proc)
         embryo = Embryo(_embryo)
         numOfNodes = np.random.randint(2, len(task.graph) - 1)
-        
+
         nodes = []
         parents = [embryo]
 
@@ -305,14 +301,14 @@ class DecisionTree:
                 parents.append(child)
 
         genes = Genes.createRandomGenes(numOfNodes)
-        return cls(embryo, nodes, procInst,genes)
+        return cls(embryo, nodes, procInst, genes)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         """Krzyżuje drzewa decyzyjne
-        
+
         Args:
             other (DecisionTree): Drzewo z którym skrzyżować.
-        
+
         Returns:
             DecisionTree, DecisionTree: Zwraca z modyfikowane drzewa
         """
@@ -342,7 +338,7 @@ class DecisionTree:
 
     def get_fit_value(self, c: int, t: int) -> float:
         """Oblicza funkcje dopasowania.
-        
+
         Args:
             c (int)
             t (int)
@@ -350,24 +346,49 @@ class DecisionTree:
         _cost = 0
         _time = 0
 
-    #     add costs of all used universal proc resources
+        #     add costs of all used universal proc resources
         for p in self.procInstances:
             if p[0].proc.universal:
                 _cost += len(p) * p[0].proc.cost
-    # add costs of execution tasks on proc resources
+        # add costs of execution tasks on proc resources
         for i, task in enumerate(self.embryo.processData):
             _cost += task.proc.proc.costs[i]
 
-    # add costs of joining procs to comms
-        for p in self.procInstances:
-            for inst in p:
-                _cost += inst.comm_join_cost
+        # add costs of joining procs to comms
+        #     for p in self.procInstances:
+        # for inst in p:
+        # _cost += inst.comm_join_cost
 
         # # times
-        # for i, task in enumerate(self.embryo.processData):
-        #     _time += task.proc.proc.times[i]
-        #
 
+        available_tasks = []
+        ongoing_tasks = [self.tasks_graph.nodes[0]]
+        self.embryo.processData[0].proc.time_remaining = self.embryo.processData[0].proc.proc.times[0]
+        finished_tasks = []
+        while len(finished_tasks) != len(self.tasks_graph.nodes):
+            for a in available_tasks:
+                # TODO CPM
+                if not self.embryo.processData[a.label].proc.time_remaining:
+                    ongoing_tasks.append(a)
+                    _t = self.embryo.processData[a.label].proc.proc.times[a.label]
+
+                    self.embryo.processData[a.label].proc.time_remaining = _t
+
+            available_tasks = [
+                a for a in available_tasks if a not in ongoing_tasks]
+
+            _time += 1
+            for o in ongoing_tasks:
+                self.embryo.processData[o.label].proc.time_remaining -= 1
+                if self.embryo.processData[o.label].proc.time_remaining < 1:
+                    finished_tasks.append(o)
+                    available_tasks.extend(list(o.children.keys()))
+                    available_tasks = [
+                        a for a in available_tasks if a not in finished_tasks]
+                    available_tasks = set(available_tasks)
+
+            ongoing_tasks = [
+                o for o in ongoing_tasks if o not in finished_tasks]
 
         _fit = c * _cost + t * _time
         return _fit
@@ -378,15 +399,13 @@ class DecisionTree:
 
     def mutate(self):
         """Mutuje drzewo
-        
+
         Returns:
             DecisionTree: zwraca zmutowane drzewo
         """
         node = np.random.choice(self.nodes)
         node.genes = Genes.createRandomGenes(1)
         return self
-
-        
 
     def __invert__(self) -> DecisionTree:
         print('pos')

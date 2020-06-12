@@ -111,6 +111,7 @@ class ProcessInstance:
         self.proc = proc
         self.numOfAllocations = 0
         self.channels: Dict[Channel,bool] = {}
+        self.time_remaining = 0
 
     def allocate(self) -> ProcessInstance:
         """Alokuje zasób.
