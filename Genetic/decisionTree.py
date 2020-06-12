@@ -112,11 +112,13 @@ class DecisionTree:
             self,
             embryo: Embryo,
             nodes: List[Node],
-            procInstances: List[ProcessInstance]
+            procInstances: List[ProcessInstance],
+            tasks_graph=None
     ):
         self.embryo = embryo
         self.nodes = nodes
         self.procInstances = procInstances
+        self.tasks_graph = tasks_graph
 
     def __deepcopy__(self, memo):
         embryo = deepcopy(self.embryo, memo)
@@ -193,7 +195,7 @@ class DecisionTree:
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        return cls(embryo, nodes, procInst)
+        return cls(embryo, nodes, procInst, tasks_graph=task.graph)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         def removeNodes(allNodes, toRemove):
@@ -224,24 +226,46 @@ class DecisionTree:
         _cost = 0
         _time = 0
 
-    #     add costs of all used universal proc resources
+        #     add costs of all used universal proc resources
         for p in self.procInstances:
             if p[0].proc.universal:
-                _cost += len(p) * p.proc.cost
-    # add costs of execution tasks on proc resources
+                _cost += len(p) * p[0].proc.cost
+        # add costs of execution tasks on proc resources
         for i, task in enumerate(self.embryo.processData):
             _cost += task.proc.proc.costs[i]
 
-    # add costs of joining procs to comms
-        for p in self.procInstances:
-            for inst in p:
-                _cost += inst.comm_join_cost
+        # add costs of joining procs to comms
+        #     for p in self.procInstances:
+        # for inst in p:
+        # _cost += inst.comm_join_cost
 
         # # times
-        # for i, task in enumerate(self.embryo.processData):
-        #     _time += task.proc.proc.times[i]
-        #
 
+        available_tasks = []
+        ongoing_tasks = [self.tasks_graph.nodes[0]]
+        self.embryo.processData[0].proc.time_remaining = self.embryo.processData[0].proc.proc.times[0]
+        finished_tasks = []
+        while len(finished_tasks) != len(self.tasks_graph.nodes):
+            for a in available_tasks:
+                # TODO CPM
+                if not self.embryo.processData[a.label].proc.time_remaining:
+                    ongoing_tasks.append(a)
+                    _t = self.embryo.processData[a.label].proc.proc.times[a.label]
+
+                    self.embryo.processData[a.label].proc.time_remaining = _t
+
+            available_tasks = [a for a in available_tasks if a not in ongoing_tasks]
+
+            _time += 1
+            for o in ongoing_tasks:
+                self.embryo.processData[o.label].proc.time_remaining -= 1
+                if self.embryo.processData[o.label].proc.time_remaining < 1:
+                    finished_tasks.append(o)
+                    available_tasks.extend(list(o.children.keys()))
+                    available_tasks = [a for a in available_tasks if a not in finished_tasks]
+                    available_tasks = set(available_tasks)
+
+            ongoing_tasks = [o for o in ongoing_tasks if o not in finished_tasks]
 
         _fit = c * _cost + t * _time
         return _fit
