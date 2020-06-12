@@ -13,6 +13,10 @@ import configuration
 from .decisionTree import DecisionTree
 
 
+def f(x):
+    return x.get_fit_value()
+
+
 class Genetic:
     """Klasa implementująca algorytm ewolucyjny w postaci programowania
      generycznego.
@@ -141,9 +145,6 @@ class Genetic:
         """
         positions = np.argsort(self.fittness)
 
-        if not self.minimalizeFittness:
-            positions = positions[::-1]
-
         self.fittness[:] = self.fittnes[positions]
         self.population[:] = self.population[positions]
     
@@ -153,15 +154,15 @@ class Genetic:
     
     @staticmethod
     def initThread(config):
-        configuration.genesProbability = config.genesProbability
-        configuration.taskData = config.taskData
-        configuration.populationSize = config.populationSize
-        configuration.reproduction = config.reproduction
-        configuration.crossbread = config.crossbread
-        configuration.mutate = config.mutate
-        configuration.stagnationLimit = config.stagnationLimit
-        configuration.constC = config.constC
-        configuration.constT = config.constT
+        configuration.genesProbability = config['genesProbability']
+        configuration.taskData = config['taskData']
+        configuration.populationSize = config['populationSize']
+        configuration.reproduction = config['reproduction']
+        configuration.crossbread = config['crossbread']
+        configuration.mutate = config['mutate']
+        configuration.stagnationLimit = config['stagnationLimit']
+        configuration.constC = config['constC']
+        configuration.constT = config['constT']
 
     def compute(self) -> int:
         """Główna metoda obliczająca nowe pokolenia
@@ -172,9 +173,21 @@ class Genetic:
         lastBestFittness = np.inf
         lastChangeOfBestFittness = 0
 
+        t = {
+            'genesProbability': configuration.genesProbability,
+            'taskData': configuration.taskData,
+            'populationSize': configuration.populationSize,
+            'reproduction': configuration.reproduction,
+            'crossbread': configuration.crossbread,
+            'mutate': configuration.mutate,
+            'stagnationLimit': configuration.stagnationLimit,
+            'constC': configuration.constC,
+            'constT': configuration.constT,
+        }
+        
         with Pool(
             initializer=self.initThread,
-            initargs=[configuration]
+            initargs=[t]
         ) as pool:
             for gen in range(self.maxNumOfGenerations - 1):
                 -self.population
@@ -182,7 +195,7 @@ class Genetic:
                 # +self.population is fit function
                 # self.fittness[:] = +self.population
                 for i, v in enumerate(pool.imap(
-                    lambda x: x.get_fit_value(),
+                    f,
                     self.populationIterator(),
                     5
                 )):
@@ -202,10 +215,12 @@ class Genetic:
                 -self.population
                 self.createNewGeneration()
 
-            self.fittness[:] = self.fitFunction(
-                self.population,
-                self.constants
-            )
+            for i, v in enumerate(pool.imap(
+                f,
+                self.populationIterator(),
+                5
+            )):
+                self.fittness[i] = v
         self.__sortFittness()
         return self.maxNumOfGenerations
 
