@@ -18,7 +18,6 @@ from Genetic.genes import GeneInfo, Genes
 
 @dataclass(init=False, order=True)
 class TaskImplementation:
-
     """Implementacja zadania.
 
     Attributes:
@@ -48,7 +47,6 @@ class TaskImplementation:
 
 
 class Embryo:
-
     """Embrion
 
     Attributes:
@@ -59,11 +57,11 @@ class Embryo:
     """
 
     def __init__(
-        self,
-        processData: Iterable[TaskImplementation],
-        data: Iterable[int] = None,
-        children: Iterable[Node] = None,
-        edgesData: Dict[Edge, Channel] = None,
+            self,
+            processData: Iterable[TaskImplementation],
+            data: Iterable[int] = None,
+            children: Iterable[Node] = None,
+            edgesData: Dict[Edge, Channel] = None,
     ):
         self.processData = processData
         self.data = data or np.array(
@@ -91,7 +89,6 @@ class Embryo:
 
 
 class Node:
-
     """Węzeł drzewa decyzyjnego
 
     Attributes:
@@ -163,7 +160,6 @@ class Node:
 
 
 class DecisionTree:
-
     """Drzewo decyzyjne.
 
     Attributes:
@@ -312,6 +308,7 @@ class DecisionTree:
         Returns:
             DecisionTree, DecisionTree: Zwraca z modyfikowane drzewa
         """
+
         def removeNodes(allNodes, toRemove):
             for i in toRemove:
                 allNodes.pop(i, None)
@@ -374,8 +371,7 @@ class DecisionTree:
             c (int)
             t (int)
         """
-        # TODO extract capcity for channel
-        capacity = 1
+        _comms = configuration.taskData.channels
         _cost = 0
         _time = 0
 
@@ -388,9 +384,10 @@ class DecisionTree:
             _cost += task.proc.proc.costs[i]
 
         # add costs of joining procs to comms
-        #     for p in self.procInstances:
-        # for inst in p:
-        # _cost += inst.comm_join_cost
+        for p in self.procInstances:
+            for inst in p:
+                for ch in inst.channels.keys():
+                    _cost += ch.cost
 
         # # times
 
@@ -400,14 +397,14 @@ class DecisionTree:
         finished_tasks = []
         while len(finished_tasks) != len(self.tasks_graph.nodes):
             _tasks_ = [(a[0], a[1], self.get_max_path_from_node(a[0], self.embryo.processData[a[0].label].proc))
-                               for a in available_tasks]
+                       for a in available_tasks]
             _tasks_to_start = sorted(_tasks_, key=lambda x: x[2])
             for a, _parent, _maxpath in _tasks_to_start:
                 if not self.embryo.processData[a.label].proc.time_remaining:
                     ongoing_tasks.append(a)
                     _t = self.embryo.processData[a.label].proc.proc.times[a.label]
                     if self.embryo.processData[a.label].proc != self.embryo.processData[_parent.label].proc:
-                        _t += np.ceil(a.parents[_parent] / capacity)
+                        _t += np.ceil(a.parents[_parent] / self.embryo.processData[a].proc.channels.values()[0].rate)
                     self.embryo.processData[a.label].proc.time_remaining = _t
 
             available_tasks = [
