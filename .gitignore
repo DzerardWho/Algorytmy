@@ -146,6 +146,8 @@ cython_debug/
 
 # Local History for Visual Studio Code
 .history/
+.vscode/
+.idea/
 
 tmp
 2019-05-15.pdf

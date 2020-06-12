@@ -45,6 +45,11 @@ frame.pack()
 
 
 def setValues(newValues):
+    """Zmienia wartości w GUI i w wewnętrznym słowniku.
+
+    Args:
+        newValues (Dict[str, str or float]): nowe wartości
+    """
     for k, v in newValues.items():
         values[k] = float(v)
         if type(AllElements[k]) is Scale:
@@ -55,6 +60,11 @@ def setValues(newValues):
 
 
 def loadFromTextInput():
+    """Zapisuje wartości wprowadzone w pola tekstowe, do dalszego użytku.
+
+    Returns:
+        bool: Fałsz, gdy wystąpił błąd, w przeciwnym wypadku prawda.
+    """
     a = entryAlfa.get().strip()
     e = entryEpsilon.get().strip()
     c = entryC.get().strip()
@@ -70,6 +80,8 @@ def loadFromTextInput():
 
 
 def resetToDefault():
+    """Resetuje wartości w GUI i wewnętrznym słowniku do wartości domyślnych.
+    """
     entryAlfa.delete(0, END)
     entryC.delete(0, END)
     entryT.delete(0, END)
@@ -79,11 +91,15 @@ def resetToDefault():
 
 
 def run():
+    """Funkcja wywołująca główne obliczenia związane z programowaniem
+    generycznym.
+    """
     if not loadFromTextInput():
         return
     taskDataFile = textChooseGraph.get('1.0', END).strip()
     if taskDataFile == '':
-        messagebox.showerror('Błąd', 'Plik z informacjami o zadaniu (graf) jest wymagany.')
+        messagebox.showerror(
+            'Błąd', 'Plik z informacjami o zadaniu (graf) jest wymagany.')
         return
     try:
         td = TaskData.loadFromFile(taskDataFile)
@@ -112,22 +128,32 @@ def run():
     ]
 
     genetic = Genetic()
+    messagebox.showinfo(
+        'Informacja',
+        'Program zacznie wykonywać algorytm po zamknięciu tego okienka.'
+    )
     generations = genetic.compute()
     best = genetic.returnBest()
 
-    with open('results.txt','w','utf-8') as file:
-      embryo = best.embryo
-      for imp in embryo.processData:
-        file.write(f'{imp.task} | P{imp.proc.proc.idx}')
+    with open('results.txt', 'w', 'utf-8') as file:
+        embryo = best.embryo
+        for imp in embryo.processData:
+            file.write(f'{imp.task} | P{imp.proc.proc.idx}')
 
-
-
-
-
-
+    messagebox.showinfo(
+        'Koniec',
+        f'Program zakończył działanie po {generations} genracjach, wyniki'
+        'zostały zapisane do pliku "results.txt".'
+    )
 
 
 def sliderOper(v):
+    """Funkcja zczytuje zmiany w suwakach wyboru współczynników sterujących
+    przydziałem liczby nowych genotypów w wyniku poszczególnych operacji.
+
+    Args:
+        v (str): zmieniona wartość, ignorowane
+    """
     beta = float(sliderBeta.get())
     gamma = float(sliderGamma.get())
     delta = float(sliderDelta.get())
@@ -142,6 +168,12 @@ def sliderOper(v):
 
 
 def sliderChan(v):
+    """Funkcja zczytuje zmiany w suwakach sterujących prawdopodobieństwem
+    wyboru poszczególnych genów kanałów komunikacyjnych.
+
+    Args:
+        v (str): zmieniona wartość, ignorowane
+    """
     cost = float(sliderChCost.get())
     trans = float(sliderChTrans.get())
     use = float(sliderChU.get())
@@ -156,6 +188,12 @@ def sliderChan(v):
 
 
 def sliderProc(v):
+    """Funkcja zczytuje zmiany w suwakach sterujących prawdopodobieństwem
+    wyboru poszczególnych genów jednostek obliczeniowych.
+
+    Args:
+        v (str): zmieniona wartość, ignorowane
+    """
     cheapTask = float(sliderProcCheapTask.get())
     fastTask = float(sliderProcFastTask.get())
     tk = float(sliderProcTK.get())
@@ -177,6 +215,11 @@ def sliderProc(v):
 
 
 def chooseTaskData():
+    """Otwiera okno dialogowe wyboru pliku z grafem zadań.
+
+    Returns:
+        str: ścieżka do pliku
+    """
     name = filedialog.askopenfilename(
         title='Wybierz plik',
         filetypes=(("all files", "*.*"),)).strip()
@@ -187,6 +230,11 @@ def chooseTaskData():
 
 
 def chooseToLoadConfig():
+    """Otwiera okno dialogowe wyboru pliku z konfiguracją do wczytania.
+
+    Returns:
+        str: ścieżka do pliku
+    """
     name = filedialog.askopenfilename(
         title='Wybierz plik do wczytania',
         filetypes=(("ini files", "*.ini"),
@@ -198,6 +246,8 @@ def chooseToLoadConfig():
 
 
 def loadConfig():
+    """Wczytuje konfigurację z pliku.
+    """
     name = textGetFile.get(1.0, END).strip()
     if name in ['', '\n']:
         name = chooseToLoadConfig()
@@ -209,6 +259,11 @@ def loadConfig():
 
 
 def chooseToSaveConfig():
+    """Otwiera okno dialogowe wyboru ścieżki, gdzie zapisać konfigurację.
+
+    Returns:
+        str: ścieżka do pliku
+    """
     name = filedialog.asksaveasfilename(
         title='Wybierz plik zapisu',
         filetypes=(("ini files", "*.ini"),)).strip()
@@ -219,6 +274,8 @@ def chooseToSaveConfig():
 
 
 def saveConfig():
+    """Zapisuje konfigurację do pliku.
+    """
     name = textSaveFile.get(1.0, END).strip()
     if name in ['', '\n']:
         name = chooseToSaveConfig()

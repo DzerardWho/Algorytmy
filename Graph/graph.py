@@ -11,7 +11,17 @@ from .node import Node
 
 
 class Graph(Sized):
+    """Klasa implementująca graf zadań.
+    """    
     def __init__(self, numOfNodes: int):
+        """Konstruktor klasy.
+
+        Args:
+            numOfNodes (int): Liczba wierzchołków w grafie
+
+        Raises:
+            ValueError: podano mniej niż jeden wierzchołek
+        """        
         if numOfNodes <= 0:
             raise ValueError("Graph needs at least one node.")
 
@@ -21,9 +31,26 @@ class Graph(Sized):
 
     @staticmethod
     def __connectNodes(parent: Node, child: Node, weight: int):
+        """Funkcja wewnętrzna łączenia wierzchołków
+
+        Args:
+            parent (Node): Rodzic
+            child (Node): Następnik rodzica
+            weight (int): Waga krawędzi
+        """        
         parent.addChild(child, weight)
 
     def connectNodes(self, parentIdx: int, childIdx: int, weight: int = 0):
+        """Funkcja tworzy krawędź pomiędzy dwoma wierzchołkami
+
+        Args:
+            parentIdx (int): Indeks wierzchołka rodzica
+            childIdx (int): Indeks następnika
+            weight (int, optional): Waga krawędzi. Defaults to 0.
+
+        Raises:
+            IndexError: Jeżeli któryś z podanych indeksów nie istnieje w grafie
+        """        
         if parentIdx >= self.nodes.shape[0] or childIdx >= self.nodes.shape[0]:
             raise IndexError("Index out of range.")
 
@@ -41,9 +68,23 @@ class Graph(Sized):
         return self.nodes.shape[0]
 
     def first(self):
+        """Pierwszy wierzchołek w grafie, 0.
+
+        Returns:
+            Node: Pierwszy wierzchołek
+        """        
         return self.nodes[0]
 
     def render(self, name: Optional[str] = None) -> str:
+        """Metoda zapisuje graf w formie pliku .png.
+
+        Args:
+            name (Optional[str], optional): Nazwa pliku, do którego ma zostać
+            zapisany graf. Domyślnie `None`
+
+        Returns:
+            str: Nazwa zapisanego pliku
+        """        
         graph = Digraph(name or f"graph_{time.strftime('%H.%M-%d.%m.%Y')}")
         for node in self.nodes:
             graph.node(node.interIdx, label=f'T{node.label}')
@@ -56,6 +97,17 @@ class Graph(Sized):
 
     @classmethod
     def fromString(cls, data: str):
+        """Wczytuje graf zadań ze stringa.
+
+        Args:
+            data (str): Graf zadań w formie tekstowej
+
+        Raises:
+            ValueError: Niewłaściwe dane
+
+        Returns:
+            Graph: Wczytany graf zadań
+        """        
         header, data = data.split('\n', 1)
         tmp = header.split(' ')
         if not (len(tmp) == 2 or tmp[1].isdigit()):

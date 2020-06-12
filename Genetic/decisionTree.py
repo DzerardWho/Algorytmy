@@ -11,7 +11,7 @@ from Graph import Graph, Node as GNode
 from TaskData import Process, ProcessInstance
 import configuration
 
-from Genetic.genes import GeneInfo,Genes
+from Genetic.genes import GeneInfo, Genes
 
 @dataclass(init=False, order=True)
 class TaskImplementation:
@@ -244,14 +244,14 @@ class DecisionTree:
 
         return self, other
 
-    def get_fit_value(self, c: int, t: int) -> float:
+    def get_fit_value(self, c: int = configuration.constC, t: int = configuration.constT) -> float:
         _cost = 0
         _time = 0
 
     #     add costs of all used universal proc resources
         for p in self.procInstances:
             if p[0].proc.universal:
-                _cost += len(p) * p.proc.cost
+                _cost += len(p) * p[0].proc.cost
     # add costs of execution tasks on proc resources
         for i, task in enumerate(self.embryo.processData):
             _cost += task.proc.proc.costs[i]

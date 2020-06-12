@@ -13,7 +13,17 @@ from .decisionTree import DecisionTree
 
 
 class Genetic:
+    """Klasa implementująca algorytm ewolucyjny w postaci programowania
+     generycznego.
+    """
+
     def __init__(self, verbose: bool = False):
+        """Inicjalizacja klasy.
+
+        Args:
+            verbose (bool, optional): Czy wypisywać informacje przy generowaniu
+             każdego pokolenia. Domyślnie `False`.
+        """
         self.maxNumOfGenerations = 10_000
 
         self.populationSize = configuration.populationSize
@@ -47,13 +57,26 @@ class Genetic:
 
     @staticmethod
     def normalize(v: np.ndarray):
+        """Normalizuje podaną tablicę.
+
+        Args:
+            v (np.ndarray): tablica do normalizacji
+
+        Returns:
+            np.ndarray: znormalizowana tablica
+        """
         return v / np.sum(v)
 
     def createInitialPopulation(self):
+        """Generowanie początkowej populacji genotypów.
+        """
         self.population = np.array(
             [DecisionTree.createRandomTree() for i in range(self.populationSize)])
 
     def createNewPopulation(self):
+        """Generowanie nowej populacji genotypów używając operatorów selekcji,
+         krzyżowania i mutacji.
+        """
         newPopulation = np.empty_like(self.population)
 
         newPopulation[:self.populationFromReproduction] = \
@@ -73,6 +96,14 @@ class Genetic:
         self.population[:] = newPopulation
 
     def reproduce(self, size: int or np.ndarray) -> np.ndarray:
+        """Implementacja operatora selekcji.
+
+        Args:
+            size (int or np.ndarray): rozmiar lub kształt wybieranej populacji
+
+        Returns:
+            np.ndarray: nowa populacja, kopia
+        """
         return deepcopy(np.random.choice(
             self.population,
             size,
@@ -81,12 +112,32 @@ class Genetic:
         ))
 
     def mutate(self, genotype: np.ndarray) -> np.ndarray:
+        """Implementacja operatora mutacji.
+
+        Args:
+            genotype (np.ndarray): genotypy, które mają zostać poddane
+            operatorowi mutacji
+
+        Returns:
+            np.ndarray: zmutowane genotypy
+        """
         return ~genotype
 
     def crossbread(self, parents: np.ndarray):
+        """Implementacja operatora krzyżowania.
+
+        Args:
+            genotype (np.ndarray): genotypy, które mają zostać poddane
+            operatorowi krzyżowaniu; oczekuje się, że będzie ona kształtu Nx2
+
+        Returns:
+            np.ndarray: zkrzyżowane genotypy
+        """
         return parents[:, 0] ^ parents[:, 1]
 
     def __sortFittness(self):
+        """Sortowanie wartości fittness i korelujących im genotypów.
+        """
         positions = np.argsort(self.fittness)
 
         if not self.minimalizeFittness:
@@ -96,13 +147,18 @@ class Genetic:
         self.population[:] = self.population[positions]
 
     def compute(self) -> int:
+        """Główna metoda obliczająca nowe pokolenia
+
+        Returns:
+            int: numer generacji, w którym skończyło się działanie metody
+        """
         lastBestFittness = np.inf
         lastChangeOfBestFittness = 0
         for gen in range(self.maxNumOfGenerations - 1):
             -self.population
 
             # +self.population is fit function
-            print( +self.population )
+            print(+self.population)
             self.fittness[:] = +self.population
             self.__sortFittness()
 
@@ -126,4 +182,9 @@ class Genetic:
         return self.maxNumOfGenerations
 
     def returnBest(self) -> DecisionTree:
+        """Zwraca najlepszy genotyp.
+
+        Returns:
+            DecisionTree: najlepszy genotyp
+        """
         return self.population[0]
