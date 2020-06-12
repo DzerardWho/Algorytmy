@@ -17,7 +17,7 @@ class Genetic:
         self.maxNumOfGenerations = 10_000
 
         self.populationSize = configuration.populationSize
-        self.stagnationLimit = stagnationLimit
+        self.stagnationLimit = configuration.stagnationLimit
 
         self.populationFromReproduction = populationFromReproduction
         self.populationFromCrossbreads = populationFromCrossbreads

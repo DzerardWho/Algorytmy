@@ -118,10 +118,10 @@ class DecisionTree:
             genes: List[List[Callable]]
     ):
         self.embryo = embryo
-        
+
         if genes:
-            for node in nodes:
-                node.genes=genes[node.label]
+            for i,node in enumerate(nodes):
+                node.genes=genes[ i ]
 
         self.nodes = nodes
         self.procInstances = procInstances
