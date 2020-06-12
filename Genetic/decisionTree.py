@@ -114,11 +114,9 @@ class DecisionTree:
             embryo: Embryo,
             nodes: List[Node],
             procInstances: List[ProcessInstance],
-            taskdata: TaskData,
             genes: List[List[Callable]]
     ):
         self.embryo = embryo
-
         if genes:
             for i,node in enumerate(nodes):
                 node.genes=genes[ i ]
@@ -137,15 +135,15 @@ class DecisionTree:
 
     def execGenes(self):
         #TODO taskdata in global or in self
-        info=GeneInfo( taskData, tree.procInstances )
+        info=GeneInfo( configuration.taskData, self.procInstances )
         queue=[]
         queue.append(self.embryo)
         while len(queue)>0:
             node=queue.pop(0)
             for child in node.children:
                 queue.append(child)
-                child.genes[0](child,GeneInfo,self.procInstances)
-                child.genes[1](child,GeneInfo,self.procInstances)
+                child.genes[0](child.data,info,self.embryo)
+                child.genes[1](child.data,info,self.embryo)
 
 
         
@@ -218,7 +216,7 @@ class DecisionTree:
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        genes = Genes.createRandomGenes(numOfNodes-1)
+        genes = Genes.createRandomGenes(numOfNodes)
         return cls(embryo, nodes, procInst,genes)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
@@ -287,3 +285,6 @@ class DecisionTree:
 
     def __neg__(self):
         self.execGenes()
+        
+    def __pos__(self) -> float:
+        return self.get_fit_value()

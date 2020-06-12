@@ -19,15 +19,15 @@ class Genetic:
         self.populationSize = configuration.populationSize
         self.stagnationLimit = configuration.stagnationLimit
 
-        self.populationFromReproduction = populationFromReproduction
-        self.populationFromCrossbreads = populationFromCrossbreads
+        self.populationFromReproduction = configuration.reproduction
+        self.populationFromCrossbreads = configuration.crossbread
 
         # Count once what doesn't change later
         self.__crossbreadSize = np.array([
             np.ceil(self.populationFromCrossbreads / 2), 2
         ], dtype=int)
 
-        self.populationFromMutations = populationFromMutations
+        self.populationFromMutations = configuration.mutate
 
         self.probability = self.normalize(
             (self.populationSize - np.arange(self.populationSize))
@@ -35,8 +35,8 @@ class Genetic:
         )
 
         self.population: Iterable[DecisionTree] = None
-        self.fittness = np.empty(self.populationSize)
-        # self.createInitialPopulation()
+        self.createInitialPopulation()
+        self.fittness = np.empty(self.populationSize, dtype=float)
 
         self.bestFittnessFinder = lambda: np.min(self.fittness)
 
@@ -102,6 +102,7 @@ class Genetic:
             -self.population
 
             # +self.population is fit function
+            print( +self.population )
             self.fittness[:] = +self.population
             self.__sortFittness()
 

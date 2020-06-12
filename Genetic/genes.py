@@ -211,12 +211,15 @@ class Genes:
 
 
 class GeneInfo:
+    #defs = configuration.taskData.proc
+    #chans = td.channels
     def __init__(self,
                  td: TaskData,
                  instances: Iterable[Iterable[ProcessInstance]],
                  ):
-        self.defs = td.proc
-        self.chans=td.channels
+        #self.defs = td.proc
+        self.defs = configuration.taskData.proc
+        self.chans = td.channels
         self.instances = instances
         
 
