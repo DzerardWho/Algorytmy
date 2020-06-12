@@ -177,9 +177,7 @@ class DecisionTree:
             embryo: Embryo,
             nodes: List[Node],
             procInstances: List[ProcessInstance],
-            taskdata: TaskData,
             genes: List[List[Callable]],
-            tasks_graph=None
     ):
         """Summary
 
@@ -193,9 +191,6 @@ class DecisionTree:
         if genes:
             for i, node in enumerate(nodes):
                 node.genes = genes[i]
-
-        for node in nodes:
-            node.genes=genes[node.label]
 
         self.nodes = nodes
         self.procInstances = procInstances
@@ -305,8 +300,8 @@ class DecisionTree:
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        genes = Genes.createRandomGenes(numOfNodes-1)
-        return cls(embryo, nodes, procInst, genes, tasks_graph=task.graph)
+        genes = Genes.createRandomGenes(numOfNodes)
+        return cls(embryo, nodes, procInst, genes)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         """Krzyżuje drzewa decyzyjne
@@ -347,10 +342,8 @@ class DecisionTree:
         for node in _n:
             for child in node.children:
                 if self.embryo.processData[child.label].proc == proc_inst:
-                    try:
+                    if node in _leafs:
                         _leafs.remove(node)
-                    except ValueError:
-                        pass
 
         all_paths = [[start_node]]
         for _nod in self.tasks_graph.nodes:
@@ -374,7 +367,7 @@ class DecisionTree:
 
         return _max_path_value
 
-    def get_fit_value(self, c: int, t: int) -> float:
+    def get_fit_value(self) -> float:
         """Oblicza funkcje dopasowania.
 
         Args:
@@ -434,11 +427,10 @@ class DecisionTree:
 
                     ongoing_tasks = [o for o in ongoing_tasks if o not in finished_tasks]
 
-        _fit = c * _cost + t * _time
+        _fit = configuration.constC * _cost + configuration.constT * _time
         return _fit
 
     def __xor__(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
-        print('xor')
         return self.crossbread(other)
 
     def mutate(self):
@@ -452,12 +444,10 @@ class DecisionTree:
         return self
 
     def __invert__(self) -> DecisionTree:
-        print('pos')
         return self.mutate()
 
     def __neg__(self):
         self.execGenes()
 
     def __pos__(self) -> float:
-        print('pos')
         return self.get_fit_value()
