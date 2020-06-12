@@ -17,7 +17,6 @@ NUM_OF_HEADERS = 5
 class TaskData:
 
     """
-    
     Attributes:
         channels (TYPE): definicje kanałow komunikacji
         graph (TYPE): referencja do bazowego grafu
@@ -49,7 +48,7 @@ class TaskData:
         """Wczytuje dane z zadanego pliku.
         
         Args:
-            path (str or Path): ścieżka do pliku
+            path (str or Path): plik lub ścieżka
         
         Raises:
             ValueError
