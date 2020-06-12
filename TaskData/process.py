@@ -1,3 +1,5 @@
+"""Zawiera klasy potrzebne do obsługi zasobów
+"""
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -9,6 +11,16 @@ import numpy as np
 
 @dataclass(init=False)
 class Process:
+
+    """Definicja zasobu
+    
+    Attributes:
+        costs (TYPE): Koszty zadań na zasobie
+        idx (TYPE): Id
+        times (TYPE): Czasy zadań na zasobie
+        universal (TYPE): Czy zasób uniwersalny
+    """
+    
     cost: int
     limit: int
     universal: bool
@@ -22,6 +34,14 @@ class Process:
             times: Iterable[int],
             costs: Iterable[int]
     ):
+        """Tworzy definicje procesu.
+        
+        Args:
+            idx (int): Id
+            proc (Iterable[int]): 
+            times (Iterable[int]): Lista czasów zadań
+            costs (Iterable[int]): Lista kosztów zadań
+        """
         self.idx = idx
         self.cost, self.limit, universal = proc
         self.universal = bool(universal)
@@ -79,6 +99,14 @@ class Process:
 
 
 class ProcessInstance:
+
+    """Instancja zasobu
+    
+    Attributes:
+        numOfAllocations (int): Ilość alokacji zasobu
+        proc (TYPE): referencja do definicji
+    """
+    
     def __init__(self, proc: Process):
         self.proc = proc
         self.numOfAllocations = 0
@@ -86,6 +114,11 @@ class ProcessInstance:
         self.time_remaining = 0
 
     def allocate(self) -> ProcessInstance:
+        """Alokuje zasób.
+        
+        Returns:
+            ProcessInstance: Instanca zasobu.
+        """
         if not self.proc.universal and self.numOfAllocations != 0:
             out = ProcessInstance(self.proc)
             out.allocate()
@@ -94,6 +127,8 @@ class ProcessInstance:
         return self
 
     def deallocate(self) -> bool:
+        """Dealokuje zasób.
+        """
         self.numOfAllocations -= 1
         return bool(self.numOfAllocations)
 

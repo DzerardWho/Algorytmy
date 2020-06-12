@@ -1,42 +1,25 @@
+"""Zawiera funkcje genów
+"""
 from __future__ import annotations
 
-import sys
 from copy import deepcopy
-from typing import Any, Callable, Dict, List, Iterable
+from typing import Any, Callable, Dict, Iterable, List, Type
 
 import numpy as np
 
-sys.path.append(".")
+from TaskData import Process, TaskData
+from TaskData.process import ProcessInstance
+
+#from .decisionTree import TaskImplementation
+
+TaskImplementationID = Type[int]
 
 from TaskData import Process, TaskData
 
-import Configuration
-
-"""
-Dla jednostek obliczeniowych:
-
-  1. Najtańsza implementacja zadań – zadania są przydzielane do zasobów, dla
-  których koszt ich wykonania jest najmniejszy,
-
-  2. Najszybsza implementacja zadań – zadania są przydzielane do zasobów, dla
-  których czas ich wykonania jest najmniejszy,
-
-  3. Najmniejsze t*k – zadania są przydzielane do zasobów, dla których iloczyn
-  czasu i kosztu ich wykonania jest najmniejszy
-
-  4. Tak samo jak dla poprzednika – zadania są przydzielane do tych samych
-  zasobów co ich poprzedniki,
-
-  5. Najmniej obciążone zasoby – zadania są przydzielane sekwencyjnie do
-  zasobów wykonujących najmniej zadań.
-
-"""
+import configuration
 
 
 class Genes:
-    """
-      helpers
-    """
     @staticmethod
     def isAvailable(p: Process, instances: Iterable[ProcessInstance]):
         return len(instances)+1 < p.limit
@@ -54,6 +37,13 @@ class Genes:
 
     @staticmethod
     def O1(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
+        """Funkcja genu zasobu: Najtańsza implementacja zadań – zadania są przydzielane do zasobów, dla których koszt ich wykonania jest najmniejszy.
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            procs (GeneInfo): Description
+            embryo (Embryo): embrion do modyfikacji
+        """
         for i, id in enumerate(data):
             imp = embryo.processData[id]
 
@@ -69,6 +59,14 @@ class Genes:
 
     @staticmethod
     def O2(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
+        """Funkcja genu zasobu: Najszybsza implementacja zadań – zadania są przydzielane do zasobów, dla
+  których czas ich wykonania jest najmniejszy.
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            procs (GeneInfo): 
+            embryo (Embryo): embrion do modyfikacji
+        """
         for i, id in enumerate(data):
             imp = embryo.processData[id]
             proc_id = min([
@@ -82,7 +80,14 @@ class Genes:
 
     @staticmethod
     def O3(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
-
+        """Funkcja genu zasobu: Najmniejsze t*k – zadania są przydzielane do zasobów, dla których iloczyn
+  czasu i kosztu ich wykonania jest najmniejszy.
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            procs (GeneInfo): 
+            embryo (Embryo): embrion do modyfikacji
+        """
         for i, id in enumerate(data):
             imp = embryo.processData[id]
             proc_id = min([
@@ -96,7 +101,14 @@ class Genes:
 
     @staticmethod
     def O4(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
-
+        """Funkcja genu zasobu: Tak samo jak dla poprzednika – zadania są przydzielane do tych samych
+  zasobów co ich poprzedniki.
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            procs (GeneInfo): Description
+            embryo (Embryo): embrion do modyfikacji
+        """
         for id in data:
             node = embryo.processData[id]
             if len(node.task.parents) > 0:
@@ -115,6 +127,14 @@ class Genes:
 
     @staticmethod
     def O5(data: List[TaskImplementationID], procs: GeneInfo, embryo: Embryo):
+        """Funkcja genu zasobu: Najmniej obciążone zasoby – zadania są przydzielane sekwencyjnie do
+  zasobów wykonujących najmniej zadań.
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            procs (GeneInfo): Description
+            embryo (Embryo): embrion do modyfikacji
+        """
         for i, id in enumerate(data):
             proc_id = min([
                 (proc_id, len(procs.instances[proc_id]))
@@ -126,19 +146,17 @@ class Genes:
                 procs.instances[proc_id]
             )
             
-    """
-    Dla zasobów komunikacyjnych:
-        1. Najmniejszy wzrost kosztu – wybierany jest kanał komunikacyjny który powoduje najmniejszy
-        wzrost kosztu całego układu
-
-        2. Najszybsza transmisja (największe b) – wybierany jest kanał komunikacyjny posiadający
-        największą przepustowość
-
-        3. Najrzadziej używany
-    """
 
     @staticmethod
     def K1(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        """Funkcja genu komunikacji: Najmniejszy wzrost kosztu – wybierany jest kanał komunikacyjny który powoduje najmniejszy
+        wzrost kosztu całego układu
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            info (GeneInfo): 
+            embryo (Embryo): embrion do modyfikacji
+        """
         for id in data:
             imp = embryo.processData[ id ]
             parent_proc = imp.proc
@@ -168,6 +186,14 @@ class Genes:
 
     @staticmethod
     def K2(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        """Funkcja genu komunikacji: Najszybsza transmisja (największe b) – wybierany jest kanał komunikacyjny posiadający
+        największą przepustowość
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            info (GeneInfo): 
+            embryo (Embryo): embrion do modyfikacji
+        """
         for id in data:
             imp = embryo.processData[ id ]
             for e in imp.task.edges:
@@ -186,6 +212,13 @@ class Genes:
 
     @staticmethod
     def K3(data: List[TaskImplementationID] ,info :GeneInfo ,embryo: Embryo):
+        """Funkcja genu komunikacji: Najrzadziej używany
+        
+        Args:
+            data (List[TaskImplementationID]): lista zadań do modyfikacji
+            info (GeneInfo): 
+            embryo (Embryo): embrion do modyfikacji
+        """
         count={ chan:0 for chan in info.chans }
         for edge,chan in embryo.edgesData.items():
             count[ chan ]+=1
@@ -200,10 +233,9 @@ class Genes:
 
     @staticmethod
     def createRandomGenes(size: int):
-        #TODO probabilities from CONFIG
         return list(zip(
-            np.random.choice( [ Genes.O1,Genes.O2,Genes.O3,Genes.O4,Genes.O5 ],p=genesProbability[0],size=size),
-            np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=genesProbability[1],size=size)))
+            np.random.choice( [ Genes.O1,Genes.O2,Genes.O3,Genes.O4,Genes.O5 ],p=configuration.genesProbability[0],size=size),
+            np.random.choice( [ Genes.K1,Genes.K2,Genes.K3 ],p=configuration.genesProbability[1],size=size)))
 
 
 class GeneInfo:
@@ -211,8 +243,9 @@ class GeneInfo:
                  td: TaskData,
                  instances: Iterable[Iterable[ProcessInstance]],
                  ):
-        self.defs = td.proc
-        self.chans=td.channels
+        #self.defs = td.proc
+        self.defs = configuration.taskData.proc
+        self.chans = td.channels
         self.instances = instances
         
 
