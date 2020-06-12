@@ -177,7 +177,9 @@ class DecisionTree:
             embryo: Embryo,
             nodes: List[Node],
             procInstances: List[ProcessInstance],
-            genes: List[List[Callable]]
+            taskdata: TaskData,
+            genes: List[List[Callable]],
+            tasks_graph=None
     ):
         """Summary
 
@@ -191,6 +193,9 @@ class DecisionTree:
         if genes:
             for i, node in enumerate(nodes):
                 node.genes = genes[i]
+
+        for node in nodes:
+            node.genes=genes[node.label]
 
         self.nodes = nodes
         self.procInstances = procInstances
@@ -300,8 +305,8 @@ class DecisionTree:
             if sizeOfPassedData > 2:
                 parents.append(child)
 
-        genes = Genes.createRandomGenes(numOfNodes)
-        return cls(embryo, nodes, procInst, genes)
+        genes = Genes.createRandomGenes(numOfNodes-1)
+        return cls(embryo, nodes, procInst, genes, tasks_graph=task.graph)
 
     def crossbread(self, other: DecisionTree) -> (DecisionTree, DecisionTree):
         """Krzyżuje drzewa decyzyjne
@@ -336,6 +341,39 @@ class DecisionTree:
 
         return self, other
 
+    def get_max_path_from_node(self, start_node: Node, proc_inst) -> float:
+        _n = [node for node in self.tasks_graph.nodes if self.embryo.processData[node.label].proc == proc_inst]
+        _leafs = deepcopy(_n)
+        for node in _n:
+            for child in node.children:
+                if self.embryo.processData[child.label].proc == proc_inst:
+                    try:
+                        _leafs.remove(node)
+                    except ValueError:
+                        pass
+
+        all_paths = [[start_node]]
+        for _nod in self.tasks_graph.nodes:
+            for child in _nod.children:
+                for path in all_paths:
+                    if self.tasks_graph.nodes[path[-1].label] in child.parents:
+                        new_path = path[:]
+                        new_path.append(child)
+                        all_paths.append(new_path)
+
+        all_paths = [_p for _p in all_paths if _p[-1] in _leafs]
+        all_paths = [ele for ind, ele in enumerate(all_paths) if ele not in all_paths[:ind]]
+        _max_path_value = 0
+        for path in all_paths:
+            _p_value = 0
+            for n in path:
+                print(n)
+                _p_value += 0
+            if _p_value > _max_path_value:
+                _max_path_value = _p_value
+
+        return _max_path_value
+
     def get_fit_value(self, c: int, t: int) -> float:
         """Oblicza funkcje dopasowania.
 
@@ -350,8 +388,11 @@ class DecisionTree:
 
         #     add costs of all used universal proc resources
         for p in self.procInstances:
-            if p[0].proc.universal:
-                _cost += len(p) * p[0].proc.cost
+            try:
+                if p[0].proc.universal:
+                    _cost += len(p) * p[0].proc.cost
+            except IndexError:
+                pass
         # add costs of execution tasks on proc resources
         for i, task in enumerate(self.embryo.processData):
             _cost += task.proc.proc.costs[i]
@@ -368,13 +409,15 @@ class DecisionTree:
         self.embryo.processData[0].proc.time_remaining = self.embryo.processData[0].proc.proc.times[0]
         finished_tasks = []
         while len(finished_tasks) != len(self.tasks_graph.nodes):
-            for a, _parent in available_tasks:
-                # TODO CPM
+            _tasks_ = [(a[0], a[1], self.get_max_path_from_node(a[0], self.embryo.processData[a[0].label].proc))
+                               for a in available_tasks]
+            _tasks_to_start = sorted(_tasks_, key=lambda x: x[2])
+            for a, _parent, _maxpath in _tasks_to_start:
                 if not self.embryo.processData[a.label].proc.time_remaining:
                     ongoing_tasks.append(a)
                     _t = self.embryo.processData[a.label].proc.proc.times[a.label]
-                    if self.embryo.processData[a.label].proc != self.embryo.processData[o.label].proc:
-                        _t += np.ceil(a.parents[o] / capacity)
+                    if self.embryo.processData[a.label].proc != self.embryo.processData[_parent.label].proc:
+                        _t += np.ceil(a.parents[_parent] / capacity)
                     self.embryo.processData[a.label].proc.time_remaining = _t
 
             available_tasks = [
