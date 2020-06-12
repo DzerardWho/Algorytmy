@@ -381,11 +381,8 @@ class DecisionTree:
 
         #     add costs of all used universal proc resources
         for p in self.procInstances:
-            try:
-                if p[0].proc.universal:
-                    _cost += len(p) * p[0].proc.cost
-            except IndexError:
-                pass
+            if len(p) and p[0].proc.universal:
+                _cost += len(p) * p[0].proc.cost
         # add costs of execution tasks on proc resources
         for i, task in enumerate(self.embryo.processData):
             _cost += task.proc.proc.costs[i]
@@ -421,6 +418,8 @@ class DecisionTree:
                 self.embryo.processData[o.label].proc.time_remaining -= 1
                 if self.embryo.processData[o.label].proc.time_remaining < 1:
                     finished_tasks.append(o)
+                    if type(available_tasks) is set:
+                        available_tasks = list(available_tasks)
                     available_tasks.extend([(t, o) for t in list(o.children.keys())])
                     available_tasks = [a for a in available_tasks if a not in finished_tasks]
                     available_tasks = set(available_tasks)

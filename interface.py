@@ -128,7 +128,7 @@ def run():
         [values['k1'], values['k2'], values['k3']]
     ]
 
-    genetic = Genetic()
+    genetic = Genetic(True)
     messagebox.showinfo(
         'Informacja',
         'Program zacznie wykonywać algorytm po zamknięciu tego okienka.'

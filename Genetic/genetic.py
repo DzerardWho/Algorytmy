@@ -158,11 +158,11 @@ class Genetic:
             -self.population
 
             # +self.population is fit function
-            print(+self.population)
             self.fittness[:] = +self.population
             self.__sortFittness()
 
             bestFittness = self.bestFittnessFinder()
+            self.__log(gen, bestFittness)
             if bestFittness == lastBestFittness:
                 lastChangeOfBestFittness += 1
                 if lastChangeOfBestFittness >= self.stagnationLimit:
