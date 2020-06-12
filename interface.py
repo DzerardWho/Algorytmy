@@ -1,12 +1,13 @@
-from tkinter import (Tk, Label, Text, Entry, LabelFrame, Button,
-                     Scale, Scrollbar, HORIZONTAL, END, filedialog, messagebox)
 from configparser import ConfigParser
+from pathlib import Path
+from tkinter import (END, HORIZONTAL, Button, Entry, Label, LabelFrame, Scale,
+                     Scrollbar, Text, Tk, filedialog, messagebox)
 
-from Genetic import Genetic
-from TaskData import TaskData
-import configuration
 from numpy import floor
 
+import configuration
+from Genetic import Genetic
+from TaskData import TaskData
 
 DEFAULT = {
     'alpha': 10.0,
@@ -268,6 +269,9 @@ def chooseToSaveConfig():
         title='Wybierz plik zapisu',
         filetypes=(("ini files", "*.ini"),)).strip()
     if name != '\n':
+        p = Path(name)
+        if p.stem != '.ini':
+            name = str(p.with_suffix('.ini'))
         textSaveFile.delete('1.0', END)
         textSaveFile.insert(END, name)
     return name
