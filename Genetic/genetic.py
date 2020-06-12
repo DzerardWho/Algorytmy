@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Iterable, List
+from multiprocessing import Pool, cpu_count
 
 import numpy as np
 
@@ -145,6 +146,22 @@ class Genetic:
 
         self.fittness[:] = self.fittnes[positions]
         self.population[:] = self.population[positions]
+    
+    def populationIterator(self):
+        for i in self.population:
+            yield i
+    
+    @staticmethod
+    def initThread(config):
+        configuration.genesProbability = config.genesProbability
+        configuration.taskData = config.taskData
+        configuration.populationSize = config.populationSize
+        configuration.reproduction = config.reproduction
+        configuration.crossbread = config.crossbread
+        configuration.mutate = config.mutate
+        configuration.stagnationLimit = config.stagnationLimit
+        configuration.constC = config.constC
+        configuration.constT = config.constT
 
     def compute(self) -> int:
         """Główna metoda obliczająca nowe pokolenia
@@ -154,30 +171,41 @@ class Genetic:
         """
         lastBestFittness = np.inf
         lastChangeOfBestFittness = 0
-        for gen in range(self.maxNumOfGenerations - 1):
-            -self.population
 
-            # +self.population is fit function
-            self.fittness[:] = +self.population
-            self.__sortFittness()
+        with Pool(
+            initializer=self.initThread,
+            initargs=[configuration]
+        ) as pool:
+            for gen in range(self.maxNumOfGenerations - 1):
+                -self.population
 
-            bestFittness = self.bestFittnessFinder()
-            self.__log(gen, bestFittness)
-            if bestFittness == lastBestFittness:
-                lastChangeOfBestFittness += 1
-                if lastChangeOfBestFittness >= self.stagnationLimit:
-                    return gen
-            else:
-                lastBestFittness = bestFittness
-                lastChangeOfBestFittness = 0
+                # +self.population is fit function
+                # self.fittness[:] = +self.population
+                for i, v in enumerate(pool.imap(
+                    lambda x: x.get_fit_value(),
+                    self.populationIterator(),
+                    5
+                )):
+                    self.fittness[i] = v
+                self.__sortFittness()
 
-            -self.population
-            self.createNewGeneration()
+                bestFittness = self.bestFittnessFinder()
+                self.__log(gen, bestFittness)
+                if bestFittness == lastBestFittness:
+                    lastChangeOfBestFittness += 1
+                    if lastChangeOfBestFittness >= self.stagnationLimit:
+                        return gen
+                else:
+                    lastBestFittness = bestFittness
+                    lastChangeOfBestFittness = 0
 
-        self.fittness[:] = self.fitFunction(
-            self.population,
-            self.constants
-        )
+                -self.population
+                self.createNewGeneration()
+
+            self.fittness[:] = self.fitFunction(
+                self.population,
+                self.constants
+            )
         self.__sortFittness()
         return self.maxNumOfGenerations
 
