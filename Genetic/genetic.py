@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from typing import Iterable, List
+from multiprocessing import Pool, cpu_count
 
 import numpy as np
 
@@ -10,6 +11,10 @@ from TaskData import Process, TaskData
 import configuration
 
 from .decisionTree import DecisionTree
+
+
+def f(x):
+    return x.get_fit_value()
 
 
 class Genetic:
@@ -140,11 +145,24 @@ class Genetic:
         """
         positions = np.argsort(self.fittness)
 
-        if not self.minimalizeFittness:
-            positions = positions[::-1]
-
         self.fittness[:] = self.fittnes[positions]
         self.population[:] = self.population[positions]
+    
+    def populationIterator(self):
+        for i in self.population:
+            yield i
+    
+    @staticmethod
+    def initThread(config):
+        configuration.genesProbability = config['genesProbability']
+        configuration.taskData = config['taskData']
+        configuration.populationSize = config['populationSize']
+        configuration.reproduction = config['reproduction']
+        configuration.crossbread = config['crossbread']
+        configuration.mutate = config['mutate']
+        configuration.stagnationLimit = config['stagnationLimit']
+        configuration.constC = config['constC']
+        configuration.constT = config['constT']
 
     def compute(self) -> int:
         """Główna metoda obliczająca nowe pokolenia
@@ -154,30 +172,55 @@ class Genetic:
         """
         lastBestFittness = np.inf
         lastChangeOfBestFittness = 0
-        for gen in range(self.maxNumOfGenerations - 1):
-            -self.population
 
-            # +self.population is fit function
-            self.fittness[:] = +self.population
-            self.__sortFittness()
+        t = {
+            'genesProbability': configuration.genesProbability,
+            'taskData': configuration.taskData,
+            'populationSize': configuration.populationSize,
+            'reproduction': configuration.reproduction,
+            'crossbread': configuration.crossbread,
+            'mutate': configuration.mutate,
+            'stagnationLimit': configuration.stagnationLimit,
+            'constC': configuration.constC,
+            'constT': configuration.constT,
+        }
+        
+        with Pool(
+            initializer=self.initThread,
+            initargs=[t]
+        ) as pool:
+            for gen in range(self.maxNumOfGenerations - 1):
+                -self.population
 
-            bestFittness = self.bestFittnessFinder()
-            self.__log(gen, bestFittness)
-            if bestFittness == lastBestFittness:
-                lastChangeOfBestFittness += 1
-                if lastChangeOfBestFittness >= self.stagnationLimit:
-                    return gen
-            else:
-                lastBestFittness = bestFittness
-                lastChangeOfBestFittness = 0
+                # +self.population is fit function
+                # self.fittness[:] = +self.population
+                for i, v in enumerate(pool.imap(
+                    f,
+                    self.populationIterator(),
+                    5
+                )):
+                    self.fittness[i] = v
+                self.__sortFittness()
 
-            -self.population
-            self.createNewGeneration()
+                bestFittness = self.bestFittnessFinder()
+                self.__log(gen, bestFittness)
+                if bestFittness == lastBestFittness:
+                    lastChangeOfBestFittness += 1
+                    if lastChangeOfBestFittness >= self.stagnationLimit:
+                        return gen
+                else:
+                    lastBestFittness = bestFittness
+                    lastChangeOfBestFittness = 0
 
-        self.fittness[:] = self.fitFunction(
-            self.population,
-            self.constants
-        )
+                -self.population
+                self.createNewGeneration()
+
+            for i, v in enumerate(pool.imap(
+                f,
+                self.populationIterator(),
+                5
+            )):
+                self.fittness[i] = v
         self.__sortFittness()
         return self.maxNumOfGenerations
 
